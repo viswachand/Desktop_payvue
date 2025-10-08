@@ -1,0 +1,10 @@
+packages:
+  - frontend
+  - backend
+  - shared
+  - app
+  - n8n
+
+ignoredBuiltDependencies:
+  - electron
+  - esbuild

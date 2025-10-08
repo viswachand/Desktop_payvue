@@ -1,0 +1,14 @@
+{
+  "name": "n8n",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "docker compose up -d",
+    "down": "docker compose down",
+    "logs": "docker compose logs -f n8n",
+    "reset": "docker compose down -v && docker compose up -d",
+    "open": "open http://localhost:5678"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

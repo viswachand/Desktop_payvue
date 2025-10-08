@@ -1,0 +1,1 @@
+export const toNumber = (val: unknown): number => Number(val) || 0;

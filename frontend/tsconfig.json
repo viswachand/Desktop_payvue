@@ -1,0 +1,28 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "target": "ES2021",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "rootDir": "src",
+    "outDir": "dist",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "preserveSymlinks": true,
+
+    "paths": {
+      "@/*": ["./src/*"],
+      "@payvue/shared": ["../shared/src"],
+      "@payvue/shared/*": ["../shared/src/*"]
+    }
+  },
+  "include": ["src", "src/declarations.d.ts"],
+  "references": [
+    { "path": "../shared" }
+  ]
+}

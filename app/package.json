@@ -1,0 +1,55 @@
+{
+  "name": "payvue-pos",
+  "version": "1.0.0",
+  "main": "dist/main.js",
+  "description": "PayVue POS Desktop App",
+  "author": "Viswachand Reddy",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare-frontend": "rm -rf frontend-dist && mkdir -p frontend-dist && cp -R ../frontend/dist/* frontend-dist/",
+    "dist": "cd ../frontend && npm run build && cd ../backend && npm run build && cd ../app && npm run prepare-frontend && npm run build && electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^32.0.2",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.payvue.pos",
+    "productName": "PayVue POS",
+    "files": [
+      "dist/**/*",
+      {
+        "from": "frontend-dist",
+        "to": "frontend/dist"
+      },
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend/dist",
+        "to": "backend"
+      }
+    ],
+    "asarUnpack": [
+      "backend/**"
+    ],
+    "directories": {
+      "output": "../release"
+    },
+    "mac": {
+      "category": "public.app-category.business",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "assets/icon.icns"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.ico"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+# n8n
+n8n/workflows/database.sqlite
+*.sqlite
+
+# Node & builds
+node_modules/
+dist/
+frontend/dist/
+frontend/node_modules/
+backend/dist/
+backend/node_modules/
+app/dist/
+
+# Env
+.env

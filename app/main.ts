@@ -1,94 +1,107 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow } from "electron";
 import { join } from "path";
-import { spawn, ChildProcess } from "child_process";
-import fs from "fs";
+import { fork, ChildProcess } from "child_process";
+import net from "net";
 
 let mainWindow: BrowserWindow | null = null;
 let backendProcess: ChildProcess | null = null;
+const BACKEND_PORT = 4000;
 
-function createWindow() {
-    mainWindow = new BrowserWindow({
-        width: 1200,
-        height: 800,
-        webPreferences: {
-            preload: join(__dirname, "preload.js"),
-            nodeIntegration: false,
-            contextIsolation: true,
-        },
-    });
-
-    if (!app.isPackaged) {
-        // Development: load from Vite dev server
-        const devURL = "http://localhost:5173";
-        console.log("🔗 Loading frontend from:", devURL);
-        mainWindow.loadURL(devURL);
-        mainWindow.webContents.openDevTools({ mode: "detach" });
-    } else {
-        // ✅ Point to frontend/dist/index.html inside packaged app
-        const indexPath = join(process.resourcesPath, "frontend", "dist", "index.html");
-        console.log("📦 Loading production file from:", indexPath);
-
-        // 🔎 Safety check: warn if the file doesn't exist
-        if (!fs.existsSync(indexPath)) {
-            console.error("❌ ERROR: Frontend index.html NOT FOUND at:", indexPath);
-            mainWindow.loadURL("data:text/html,<h1>Frontend not found. Did you build the frontend before packaging?</h1>");
-            return;
-        }
-
-        mainWindow
-            .loadFile(indexPath)
-            .then(() => console.log("✅ Frontend loaded successfully"))
-            .catch((err) => console.error("❌ Failed to load frontend:", err));
-    }
-
-    mainWindow.on("closed", () => {
-        mainWindow = null;
-    });
+// 🧠 Check if backend port (4000) is already taken
+async function isPortFree(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const tester = net
+      .createServer()
+      .once("error", () => resolve(false))
+      .once("listening", () => tester.close(() => resolve(true)))
+      .listen(port);
+  });
 }
 
+// 🚀 Launch backend only once
 function startBackend() {
-    const backendPath = app.isPackaged
-        ? join(process.resourcesPath, "backend", "index.js") // packaged path
-        : join(__dirname, "..", "..", "backend", "dist", "index.js"); // dev path
+  if (backendProcess) {
+    console.log("[PayVue] ⚠️ Backend already running, skipping restart.");
+    return;
+  }
 
-    console.log("🚀 Starting backend from:", backendPath);
+  const backendPath = app.isPackaged
+    ? join(process.resourcesPath, "backend", "start.js")
+    : join(__dirname, "..", "backend", "dist", "index.js");
 
-    backendProcess = spawn("node", [backendPath], {
-        stdio: "inherit",
-        env: { ...process.env, JWT_KEY: "viswachand19091i391i09" },
-    });
+  console.log(`[PayVue] 🚀 Starting backend from: ${backendPath}`);
 
-    backendProcess.on("error", (err) => {
-        console.error("❌ Failed to start backend process:", err);
-    });
+  backendProcess = fork(backendPath, [], {
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      NODE_ENV: app.isPackaged ? "production" : "development",
+      PORT: String(BACKEND_PORT),
+    },
+  });
 
-    backendProcess.on("exit", (code) => {
-        console.log("⚠️ Backend process exited with code:", code);
-    });
+  backendProcess.on("exit", (code) => {
+    console.log(`[PayVue] ⚠️ Backend exited with code: ${code}`);
+    backendProcess = null;
+  });
 }
 
-app.whenReady().then(() => {
-    startBackend();
-    createWindow();
+// 🖥️ Create frontend window
+async function createMainWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    backgroundColor: "#ffffff",
+    webPreferences: {
+      preload: join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
 
-    app.on("activate", () => {
-        if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    });
+  const frontendPath = app.isPackaged
+    ? join(process.resourcesPath, "frontend", "index.html")
+    : "http://localhost:5173";
+
+  console.log(`[PayVue] 📦 Frontend path: ${frontendPath}`);
+
+  if (app.isPackaged) {
+    await mainWindow.loadFile(frontendPath);
+  } else {
+    await mainWindow.loadURL(frontendPath);
+  }
+
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+  });
+}
+
+// 🧩 Electron lifecycle
+app.whenReady().then(async () => {
+  const portFree = await isPortFree(BACKEND_PORT);
+  if (portFree) {
+    console.log("[PayVue] ✅ Port 4000 is free. Starting backend...");
+    startBackend();
+  } else {
+    console.log("[PayVue] ⚠️ Port 4000 already in use — skipping backend start.");
+  }
+
+  await createMainWindow();
+});
+
+// 🧹 Cleanup on quit
+app.on("before-quit", () => {
+  if (backendProcess) {
+    console.log("[PayVue] 🛑 Killing backend process...");
+    backendProcess.kill();
+    backendProcess = null;
+  }
 });
 
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") app.quit();
+  if (process.platform !== "darwin") app.quit();
 });
 
-app.on("quit", () => {
-    if (backendProcess) {
-        console.log("🛑 Killing backend process...");
-        backendProcess.kill();
-        backendProcess = null;
-    }
-});
-
-ipcMain.on("toMain", (_event, data) => {
-    console.log("📩 Received from renderer:", data);
-    mainWindow?.webContents.send("fromMain", { message: "Hello from Electron!" });
+app.on("activate", async () => {
+  if (BrowserWindow.getAllWindows().length === 0) await createMainWindow();
 });

@@ -12,13 +12,11 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-
-
 interface CartSummaryProps {
   subtotal: number;
   tax: number;
   total: number;
-  taxRate?: number; 
+  taxRate?: number;
   onDiscountChange?: (value: number) => void;
   onCommentChange?: (value: string) => void;
 }
@@ -61,8 +59,10 @@ export default function CartSummary({
   };
 
   const handleAddDiscount = () => {
-    if (discount <= 0) return showSnack("Enter a valid discount amount.", "warning");
-    if (discount > total) return showSnack("Discount cannot exceed total.", "error");
+    if (discount <= 0)
+      return showSnack("Enter a valid discount amount.", "warning");
+    if (discount > total)
+      return showSnack("Discount cannot exceed total.", "error");
 
     onDiscountChange?.(discount);
     setShowDiscount(false);
@@ -76,28 +76,27 @@ export default function CartSummary({
   };
 
   const handleAddComment = () => {
-    if (!comment.trim()) return showSnack("Comment cannot be empty.", "warning");
+    if (!comment.trim())
+      return showSnack("Comment cannot be empty.", "warning");
     onCommentChange?.(comment);
     setShowComment(false);
     showSnack("Comment added.", "success");
   };
 
   // ✅ Calculate final total dynamically (with discount)
-  const finalTotal = useMemo(() => Math.max(total - discount, 0), [total, discount]);
+  const finalTotal = useMemo(
+    () => Math.max(total - discount, 0),
+    [total, discount]
+  );
 
   return (
     <>
       <Box
         sx={{
           mt: 2,
-          borderTop: `1px solid ${
-            theme.palette.mode === "light"
-              ? theme.palette.grey[200]
-              : theme.palette.grey[800]
-          }`,
+          borderTop: `1px solid ${theme.palette.divider}`,
         }}
       >
-        {/* Action Buttons */}
         <Stack
           direction="row"
           alignItems="center"
@@ -166,7 +165,11 @@ export default function CartSummary({
                 }}
                 inputProps={{ inputMode: "decimal" }}
               />
-              <IconButton color="primary" size="small" onClick={handleAddDiscount}>
+              <IconButton
+                color="primary"
+                size="small"
+                onClick={handleAddDiscount}
+              >
                 <AddIcon fontSize="small" />
               </IconButton>
             </Stack>

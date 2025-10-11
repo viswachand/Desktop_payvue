@@ -4,7 +4,9 @@ import {
   CardContent,
   CardActions,
   CircularProgress,
-  Divider,
+  Chip,
+  Pagination,
+  Stack,
 } from "@mui/material";
 import {
   Grid,
@@ -14,6 +16,7 @@ import {
   TextField,
   useTheme,
   Snackbar,
+  Divider,
 } from "@/components/common";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "@/app/store";
@@ -37,20 +40,23 @@ export default function ItemSale() {
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
 
-  // Redux selectors
+  // Redux state
   const items = useSelector(selectAllItems);
   const isLoading = useSelector(selectItemsLoading);
   const error = useSelector(selectItemsError);
   const cart = useSelector(selectCartItems);
 
   // Local state
-  const [search, setSearch] = useState<string>("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 12;
 
-  // Snackbar state
-  const [snackOpen, setSnackOpen] = useState<boolean>(false);
-  const [snackMessage, setSnackMessage] = useState<string>("");
+  // Snackbar
+  const [snackOpen, setSnackOpen] = useState(false);
+  const [snackMessage, setSnackMessage] = useState("");
   const [snackSeverity, setSnackSeverity] = useState<SnackSeverity>("info");
 
+  // Fetch items
   useEffect(() => {
     dispatch(fetchItems());
   }, [dispatch]);
@@ -62,6 +68,11 @@ export default function ItemSale() {
       setSnackOpen(true);
     }
   }, [error]);
+
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setPage(1);
+  };
 
   const handleAddToCart = (product: Item): void => {
     const productId = product.id || (product as any)._id;
@@ -79,7 +90,6 @@ export default function ItemSale() {
     setSnackOpen(true);
   };
 
-  // Filter items by search term
   const filteredItems = useMemo(
     () =>
       items
@@ -90,151 +100,158 @@ export default function ItemSale() {
     [items, search]
   );
 
-  // Handle search input
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    setSearch(e.target.value);
-  };
+  const paginatedItems = useMemo(() => {
+    const start = (page - 1) * itemsPerPage;
+    return filteredItems.slice(start, start + itemsPerPage);
+  }, [filteredItems, page]);
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
   return (
     <SaleLayout>
       <Box>
-        {/* 🔍 Search Field */}
         <TextField
           fullWidth
-          placeholder="Search products..."
-          variant="outlined"
+          placeholder="Search items..."
           value={search}
           onChange={handleSearchChange}
           sx={{
-            mb: 2,
+            mb: 2.5,
             backgroundColor: theme.palette.background.paper,
-            borderRadius: 1,
+            borderRadius: theme.shape.borderRadius,
           }}
         />
 
-        {/* ⏳ Loading State */}
+        {/* Loading State */}
         {isLoading && (
           <Box display="flex" justifyContent="center" mt={4}>
             <CircularProgress />
           </Box>
         )}
 
-        {/* 🧾 Product Grid */}
+        {/* Item Grid */}
         {!isLoading && (
-          <Grid container spacing={2.5}>
-            {filteredItems.length > 0 ? (
-              filteredItems.map((product: Item) => {
-                const productId = product.id || (product as any)._id;
-                const inCart = cart.some((i: Item) => i.id === productId);
+          <>
+            <Grid spacing={2}>
+              {paginatedItems.length > 0 ? (
+                paginatedItems.map((product: Item) => {
+                  const productId = product.id || (product as any)._id;
+                  const inCart = cart.some((i: Item) => i.id === productId);
 
-                return (
-                  <Grid key={productId} size={{ md: 3 }}>
-                    <Card
-                    elevation={0}
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                        height: "100%",
-                        borderRadius: 1,
-                        border:`0.7px solid ${theme.palette.divider}`,
-                        backgroundColor: theme.palette.background.paper,
-                        transition: "all 0.25s ease",
-                        "&:hover": {
-                          transform: "translateY(-3px)",
-                        },
-                      }}
-                    >
-                      <CardContent sx={{ p: 2.5 }}>
-                        <Typography
-                          variant="subtitle1"
-                          fontWeight={700}
-                          color="text.primary"
-                          noWrap
-                          sx={{ mb: 0.5 }}
-                        >
-                          {product.itemName}
-                        </Typography>
-
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{
-                            mb: 1,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                          }}
-                        >
-                          {product.itemDescription ||
-                            "No description available."}
-                        </Typography>
-
-                        <Divider sx={{ my: 1.5 }} />
-
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 0.6,
-                            fontSize: "0.875rem",
-                          }}
-                        >
-                          <Typography variant="body2">
-                            <strong>Category:</strong>{" "}
-                            {product.itemCategory ?? "—"}
+                  return (
+                    <Grid key={productId} size={{ xs: 12, sm: 6, md: 6 }}>
+                      <Card
+                        elevation={0}
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "space-between",
+                          height: "100%",
+                          borderRadius: 2,
+                          border: `1px solid ${theme.palette.divider}`,
+                          backgroundColor: theme.palette.background.paper,
+                          transition: "all 0.25s ease",
+                          "&:hover": {
+                            transform: "translateY(-3px)",
+                          },
+                        }}
+                      >
+                        <CardContent sx={{ p: 2 }}>
+                          <Typography
+                            variant="subtitle1"
+                            fontWeight={700}
+                            color="text.primary"
+                            sx={{ mb: 0.5 }}
+                            noWrap
+                          >
+                            {product.itemName}
                           </Typography>
-                          <Typography variant="body2">
-                            <strong>Cost Price:</strong> $
-                            {product.costPrice?.toFixed(2) ?? "0.00"}
-                          </Typography>
-                          <Typography variant="body2">
-                            <strong>Quantity:</strong> {product.quantity ?? 0}
-                          </Typography>
-                        </Box>
-                      </CardContent>
 
-                      <CardActions sx={{ px: 2.5, pb: 2.5, pt: 0 }}>
-                        <Button
-                          variant={inCart ? "outlined" : "contained"}
-                          color={inCart ? "success" : "primary"}
-                          size="medium"
-                          fullWidth
-                          disabled={inCart}
-                          onClick={() => handleAddToCart(product)}
-                          sx={{
-                            textTransform: "none",
-                            borderRadius: 2,
-                            fontWeight: 600,
-                            py: 1,
-                            opacity: inCart ? 0.8 : 1,
-                          }}
-                        >
-                          {inCart ? "Added" : "Add to Cart"}
-                        </Button>
-                      </CardActions>
-                    </Card>
-                  </Grid>
-                );
-              })
-            ) : (
-              <Grid size={{ xs: 12 }}>
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  align="center"
-                  sx={{ mt: 4 }}
-                >
-                  No items found.
-                </Typography>
-              </Grid>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                            }}
+                          >
+                            {product.itemDescription || "No description."}
+                          </Typography>
+
+                          {/* SKU */}
+                          {product.itemSKU && (
+                            <Typography
+                              variant="caption"
+                              color="text.disabled"
+                              sx={{ display: "block", mb: 1 }}
+                            >
+                              {product.itemSKU}
+                            </Typography>
+                          )}
+
+                          <Typography
+                            variant="h6"
+                            fontWeight={700}
+                            color="primary"
+                            sx={{ mt: 1 }}
+                          >
+                            ${product.costPrice?.toFixed(2) ?? "0.00"}
+                          </Typography>
+                        </CardContent>
+                        <CardActions sx={{ p: 2.5, pt: 0 }}>
+                          <Button
+                            variant={inCart ? "outlined" : "contained"}
+                            color={inCart ? "success" : "primary"}
+                            fullWidth
+                            disabled={inCart}
+                            onClick={() => handleAddToCart(product)}
+                            sx={{
+                              textTransform: "none",
+                              fontWeight: 600,
+                              py: 1,
+                              borderRadius: 2,
+                            }}
+                          >
+                            {inCart ? "Added" : "Add to Cart"}
+                          </Button>
+                        </CardActions>
+                      </Card>
+                    </Grid>
+                  );
+                })
+              ) : (
+                <Grid size={{ xs: 12 }}>
+                  <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    align="center"
+                    sx={{ mt: 4 }}
+                  >
+                    No items found.
+                  </Typography>
+                </Grid>
+              )}
+            </Grid>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Stack alignItems="center" mt={4}>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={(_, value) => setPage(value)}
+                  color="primary"
+                  shape="rounded"
+                />
+              </Stack>
             )}
-          </Grid>
+          </>
         )}
 
-        {/* ⚡ Snackbar */}
+        {/* Snackbar */}
         <Snackbar
           open={snackOpen}
           onClose={() => setSnackOpen(false)}

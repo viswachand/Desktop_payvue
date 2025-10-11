@@ -33,10 +33,10 @@ export default function SaleHistoryPage() {
     severity: "success" as "success" | "error",
   });
 
-  // ✅ Default filter values
+  // ✅ Default filters
   const [filters, setFilters] = useState({
-    saleType: "all",
-    status: "all",
+    saleType: "all", // All Types, inventory, service, custom
+    status: "all", // All Payments, paid, pending, refunded
     search: "",
   });
 
@@ -45,24 +45,28 @@ export default function SaleHistoryPage() {
     dispatch(fetchSales());
   }, [dispatch]);
 
-  // 🔍 Filtered sales (client-side)
+  // 🔍 Filtered sales
   const filteredSales = useMemo(() => {
     return sales.filter((sale) => {
       const matchesType =
-        filters.saleType === "all" || sale.saleType === filters.saleType;
+        filters.saleType === "all" ||
+        sale.saleType?.toLowerCase() === filters.saleType.toLowerCase();
+
       const matchesStatus =
-        filters.status === "all" || sale.status === filters.status;
+        filters.status === "all" ||
+        sale.status?.toLowerCase() === filters.status.toLowerCase();
+
+      const searchTerm = filters.search.toLowerCase();
       const matchesSearch =
-        !filters.search ||
-        sale.invoiceNumber
+        !searchTerm ||
+        sale.invoiceNumber?.toLowerCase().includes(searchTerm) ||
+        sale.customerInformation?.firstName
           ?.toLowerCase()
-          .includes(filters.search.toLowerCase()) ||
-        sale.customerInformation.firstName
+          .includes(searchTerm) ||
+        sale.customerInformation?.phone
           ?.toLowerCase()
-          .includes(filters.search.toLowerCase()) ||
-        sale.customerInformation.phone
-          ?.toLowerCase()
-          .includes(filters.search.toLowerCase());
+          .includes(searchTerm);
+
       return matchesType && matchesStatus && matchesSearch;
     });
   }, [sales, filters]);
@@ -111,16 +115,16 @@ export default function SaleHistoryPage() {
           backgroundColor: theme.palette.background.paper,
           border: `1px solid ${theme.palette.divider}`,
           borderTopLeftRadius: theme.shape.borderRadius,
-           borderTopRightRadius: theme.shape.borderRadius,
+          borderTopRightRadius: theme.shape.borderRadius,
           alignItems: "center",
         }}
       >
-        {/* 🔍 Search Box (Left) */}
+        {/* 🔍 Search */}
         <Grid size={{ xs: 12, md: 7 }}>
           <TextField
             variant="outlined"
             size="small"
-            placeholder="Search..."
+            placeholder="Search by customer, phone, or invoice..."
             value={filters.search}
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, search: e.target.value }))
@@ -138,7 +142,7 @@ export default function SaleHistoryPage() {
           />
         </Grid>
 
-        {/* 🔽 Filters (Right Side) */}
+        {/* 🔽 Filters */}
         <Grid
           size={{ xs: 12, md: 5 }}
           sx={{
@@ -152,29 +156,33 @@ export default function SaleHistoryPage() {
           <TextField
             select
             size="small"
-            sx={{ flex: "1 1 200px", minWidth: 120 }}
+            sx={{ flex: "1 1 200px", minWidth: 150 }}
             value={filters.saleType}
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, saleType: e.target.value }))
             }
+            label="Type"
           >
-            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="all">All Types</MenuItem>
             <MenuItem value="inventory">Inventory</MenuItem>
             <MenuItem value="service">Service</MenuItem>
+            <MenuItem value="custom">Custom</MenuItem>
           </TextField>
 
-          {/* 🧾 Status */}
+          {/* 💳 Payment Status */}
           <TextField
             select
             size="small"
-            sx={{ flex: "1 1 200px", minWidth: 120 }}
+            sx={{ flex: "1 1 200px", minWidth: 150 }}
             value={filters.status}
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, status: e.target.value }))
             }
+            label="Payment"
           >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="completed">Completed</MenuItem>
+            <MenuItem value="all">All Payments</MenuItem>
+            <MenuItem value="paid">Paid</MenuItem>
+            <MenuItem value="pending">Pending</MenuItem>
             <MenuItem value="refunded">Refunded</MenuItem>
           </TextField>
         </Grid>
@@ -183,7 +191,7 @@ export default function SaleHistoryPage() {
       {/* 🧾 Table */}
       <Grid container>
         <Grid size={{ xs: 12 }}>
-          <SaleHistoryTable 
+          <SaleHistoryTable
             sales={filteredSales}
             onView={(sale) => setSelectedSale(sale)}
             onPrint={(sale) => window.print()}

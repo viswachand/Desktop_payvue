@@ -103,9 +103,6 @@ export default function CartPanel() {
     navigate("/sale/item/payment");
   };
 
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
   return (
     <Box
       sx={{
@@ -119,7 +116,6 @@ export default function CartPanel() {
         border: `1px solid ${theme.palette.divider}`,
       }}
     >
-      {/* 👤 Customer Section */}
       {!customer ? (
         <Button
           variant="outlined"
@@ -155,10 +151,7 @@ export default function CartPanel() {
                   ? theme.palette.background.paper
                   : theme.palette.background.default,
               border: `1px solid ${theme.palette.divider}`,
-              boxShadow:
-                theme.palette.mode === "light"
-                  ? "0 1px 3px rgba(0,0,0,0.06)"
-                  : "0 1px 3px rgba(0,0,0,0.4)",
+
             }}
           >
             <Stack direction="row" spacing={1.5} alignItems="center">

@@ -21,6 +21,16 @@ export default function SaleHistoryTable({
 }: Props) {
   const theme = useTheme();
 
+  // Normalize to avoid null errors (even if backend sends incomplete data)
+  const safeSales = React.useMemo(
+    () =>
+      sales.map((s) => ({
+        ...s,
+        customerInformation: s.customerInformation ?? {},
+      })),
+    [sales]
+  );
+
   const columns: GridColDef<Sale>[] = [
     { field: "invoiceNumber", headerName: "Invoice #", flex: 1.3 },
     {
@@ -36,13 +46,13 @@ export default function SaleHistoryTable({
       field: "customerInformation",
       headerName: "Customer",
       flex: 1,
-      valueGetter: (value, row) => `${row.customerInformation.firstName || ""}`,
+      valueGetter: (value, row) => `${row.customerInformation?.firstName ?? ""}`,
     },
     {
       field: "customerPhone",
       headerName: "Phone",
       flex: 1,
-      valueGetter: (value, row) => `${row.customerInformation.phone || ""}`,
+      valueGetter: (value, row) => `${row.customerInformation?.phone ?? ""}`,
     },
     { field: "saleType", headerName: "Type", flex: 0.7 },
     { field: "total", headerName: "Total ($)", flex: 0.8 },
@@ -78,21 +88,13 @@ export default function SaleHistoryTable({
         return (
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
             <Tooltip title="View Details">
-              <IconButton
-                color="primary"
-                onClick={() => onView(row)}
-                size="small"
-              >
+              <IconButton color="primary" onClick={() => onView(row)} size="small">
                 <RemoveRedEyeRoundedIcon fontSize="small" />
               </IconButton>
             </Tooltip>
 
             <Tooltip title="Print Invoice">
-              <IconButton
-                color="primary"
-                onClick={() => onPrint(row)}
-                size="small"
-              >
+              <IconButton color="primary" onClick={() => onPrint(row)} size="small">
                 <LocalPrintshopRoundedIcon fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -117,7 +119,7 @@ export default function SaleHistoryTable({
   return (
     <Box sx={{ height: 600, width: "100%" }}>
       <DataGrid<Sale>
-        rows={sales}
+        rows={safeSales}
         columns={columns}
         getRowId={(r) =>
           r.id || r.invoiceNumber || `${r.createdAt}-${Math.random()}`
@@ -130,19 +132,19 @@ export default function SaleHistoryTable({
         pageSizeOptions={[10, 25, 50]}
         density="compact"
         sx={{
-          
+          borderTop:0,
+  
+          "& .MuiDataGrid-columnHeaders": {
+            backgroundColor: theme.palette.grey[100],
+             borderRadius: 0,
+          },
           "& .MuiDataGrid-row--borderBottom .MuiDataGrid-columnHeader, \
-       & .MuiDataGrid-row--borderBottom .MuiDataGrid-filler, \
-       & .MuiDataGrid-row--borderBottom .MuiDataGrid-scrollbarFiller": {
+             & .MuiDataGrid-row--borderBottom .MuiDataGrid-filler, \
+             & .MuiDataGrid-row--borderBottom .MuiDataGrid-scrollbarFiller": {
             borderBottom: "0 !important",
             borderTop: "0 !important",
             backgroundColor: theme.palette.grey[100],
           },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: theme.palette.grey[100],
-             borderTop: "none !important",
-          },
-
         }}
       />
     </Box>

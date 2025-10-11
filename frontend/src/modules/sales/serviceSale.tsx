@@ -100,7 +100,7 @@ export default function ServiceSale() {
         {/* 🧩 Form */}
         <Box
           sx={{
-            borderRadius: 1,
+            borderRadius: theme.shape.borderRadius,
             p: 3,
             backgroundColor: theme.palette.background.paper,
             border: `1px solid ${theme.palette.divider}`,
@@ -116,7 +116,7 @@ export default function ServiceSale() {
               >
                 Service Type
               </Typography>
-              <Box sx={{ display: "flex", gap: 1 }}>
+              <Box sx={{ display: "flex", gap: 1, mt:-1.8}}>
                 {(["repair", "grill"] as ServiceType[]).map((type) => (
                   <Button
                     key={type}

@@ -28,7 +28,8 @@ const Custom = lazy(() => import("@/modules/sales/customSale"));
 const History = lazy(() => import("@/modules/sales/SaleHistoryPage"));
 
 //AdminConfig
-const Admin = lazy(() => import("@/page/Admin"));
+const AdminScreen = lazy(() => import("@/page/Admin"));
+const PolicesScreen = lazy(() => import("@/page/PoliciesPage"));
 
 const SuccessScreen = lazy(() => import("@/page/PaymentSuccessPage"))
 
@@ -57,9 +58,11 @@ function App({ toggleTheme, currentMode }: AppProps) {
             <Route path="/sale/custom" element={<Custom />} />
             <Route path="/sale/history" element={<History />} />
             <Route path="/sale/item/payment" element={<PaymentScreen />} />
+            
 
             <Route path="/success" element={<SuccessScreen />} />
-            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin" element={<AdminScreen />} />
+            <Route path="/policies" element={<PolicesScreen />} />
           </Route>
         </Route>
 

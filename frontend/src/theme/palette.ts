@@ -21,7 +21,7 @@ export const lightPalette: PaletteOptions = {
         primary: "#111827",
         secondary: "#595959",
     },
-    divider: "#e6ebf1",
+    divider: "#d5d8db",
     success: {
         main: "#2E7D32",
         contrastText: "#FFFFFF",

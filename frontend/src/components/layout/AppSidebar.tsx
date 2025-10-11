@@ -1,39 +1,18 @@
-import { useState } from "react";
-import {
-  Drawer,
-  Box,
-  IconButton,
-  Typography,
-  Tooltip,
-  useTheme,
-} from "@mui/material";
+import { useTheme, Drawer, Box, IconButton, Typography, Tooltip } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { menuItems } from "./sidebarConfig";
 import { APPBAR_HEIGHT, SIDEBAR_WIDTH } from "@/utils/constants";
 
-interface AppSidebarProps {
-  activeMenu: string;
-  setActiveMenu: (menu: string) => void;
-}
-
-interface MenuItem {
-  label: string;
-  icon: React.ReactNode;
-  path?: string;
-  hasSubmenu?: boolean;
-}
-
-export default function AppSidebar({
-  activeMenu,
-  setActiveMenu,
-}: AppSidebarProps) {
+export default function AppSidebar() {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleMenuClick = (item: MenuItem) => {
-    setActiveMenu(item.label.toLowerCase());
-    if (!item.hasSubmenu && typeof item.path === "string") {
+  const handleMenuClick = (item: any) => {
+    if (item.subItems && item.subItems.length > 0) {
+      // 🧭 Navigate to the first sub-route for "Sale"
+      navigate(item.subItems[0].path);
+    } else if (item.path) {
       navigate(item.path);
     }
   };
@@ -55,7 +34,6 @@ export default function AppSidebar({
           pb: 2,
           top: `${APPBAR_HEIGHT}px`,
           height: `calc(100% - ${APPBAR_HEIGHT}px)`,
-          borderRadius: 0,
         },
       }}
     >
@@ -68,10 +46,21 @@ export default function AppSidebar({
           gap: 1.5,
         }}
       >
-        {menuItems.map((item: MenuItem) => {
-          const isActive =
-            activeMenu === item.label.toLowerCase() ||
-            (item.path && location.pathname.startsWith(item.path));
+        {menuItems.map((item) => {
+          // ✅ Strict active detection
+          const isActive = (() => {
+            if (item.subItems && item.subItems.length > 0) {
+              // Active if any of its subroutes match the current path
+              return item.subItems.some((sub: any) =>
+                location.pathname.startsWith(sub.path)
+              );
+            }
+            if (item.path) {
+              // Active only if exact main path matches
+              return location.pathname === item.path;
+            }
+            return false;
+          })();
 
           return (
             <Tooltip key={item.label} title={item.label} placement="right" arrow>
@@ -103,7 +92,6 @@ export default function AppSidebar({
                   color="inherit"
                   size="large"
                   disableRipple
-                  disableFocusRipple
                   sx={{
                     "&:hover": { backgroundColor: "transparent" },
                     p: 0,

@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { Box } from "@mui/material";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import AppHeader from "./Appheader";
 import AppSidebar from "./AppSidebar";
 import SubSidebar from "./secoundSidBar";
@@ -11,21 +10,20 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ toggleTheme, currentMode }: AppLayoutProps) {
-  const [activeMenu, setActiveMenu] = useState("dashboard");
+  const location = useLocation();
+  const isSaleRoute = location.pathname.startsWith("/sale");
 
   return (
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      {/* Sidebar */}
-      <AppSidebar activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
+      {/* ✅ No props now */}
+      <AppSidebar />
 
-      {/* Conditional sub-sidebar for sales */}
-      {activeMenu === "sale" && <SubSidebar />}
+      {/* Show secondary sidebar only for sale routes */}
+      {isSaleRoute && <SubSidebar />}
 
       {/* Main content area */}
       <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
         <AppHeader toggleTheme={toggleTheme} currentMode={currentMode} />
-
-        {/* Page content */}
         <Box
           component="main"
           sx={{
@@ -38,7 +36,6 @@ export default function AppLayout({ toggleTheme, currentMode }: AppLayoutProps) 
         >
           <Outlet />
         </Box>
-
       </Box>
     </Box>
   );

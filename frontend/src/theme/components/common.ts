@@ -147,7 +147,7 @@ export const createCommonComponents = (theme: Theme) => ({
   MuiDataGrid: {
     styleOverrides: {
       root: {
-        borderTop: "0 !important",
+        borderRadius:0,
         border: `1px solid ${theme.palette.mode === "light"
             ? theme.palette.divider
             : theme.palette.background.default
@@ -193,10 +193,11 @@ export const createCommonComponents = (theme: Theme) => ({
               ? theme.palette.grey[50]
               : theme.palette.action.hover,
         },
-        border: `0.8px solid ${theme.palette.mode === "light"
+        borderBottom: `0.8px solid ${theme.palette.mode === "light"
             ? theme.palette.divider
             : theme.palette.background.default
           }`,
+          
       },
 
       footerContainer: {

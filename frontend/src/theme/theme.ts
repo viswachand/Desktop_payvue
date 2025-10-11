@@ -3,23 +3,19 @@ import { lightPalette, darkPalette } from "./palette";
 import { typography } from "./typography";
 import { createCommonComponents } from "./components/common";
 
-export const lightTheme = createTheme({
-  shape: {
-    borderRadius: 2,
-  },
-  palette: lightPalette,
+const baseTheme = {
+  shape: { borderRadius: 1 },
   typography,
-});
-
-lightTheme.components = {
-  ...createCommonComponents(lightTheme),
 };
+
+export const lightTheme = createTheme({
+  ...baseTheme,
+  palette: lightPalette,
+});
+lightTheme.components = createCommonComponents(lightTheme);
 
 export const darkTheme = createTheme({
+  ...baseTheme,
   palette: darkPalette,
-  typography,
 });
-
-darkTheme.components = {
-  ...createCommonComponents(darkTheme),
-};
+darkTheme.components = createCommonComponents(darkTheme);

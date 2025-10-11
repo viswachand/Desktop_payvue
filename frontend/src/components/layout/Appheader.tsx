@@ -55,7 +55,6 @@ export default function AppHeader({
         backgroundColor: theme.palette.background.paper,
         color: theme.palette.text.primary,
         borderBottom: `1px solid ${theme.palette.divider}`,
-        boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
         zIndex: theme.zIndex.drawer + 1,
         borderRadius: 0,
       }}

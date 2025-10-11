@@ -27,7 +27,6 @@ const initialState: SaleState = {
 // Async Thunks
 // ----------------------------------------------------
 
-// 🧾 Create Sale
 export const createSale = createAsyncThunk<Sale, Sale, { rejectValue: string }>(
   "sales/createSale",
   async (payload, { rejectWithValue }) => {

@@ -1,7 +1,7 @@
 import type { ThemeOptions } from "@mui/material/styles";
 
 export const typography: NonNullable<ThemeOptions["typography"]> = {
-    fontFamily: `'Inter', 'Roboto', 'Arial', sans-serif`,
+      fontFamily: `'Public Sans', sans-serif`,
 
     h1: {
         fontSize: "1.5rem", // 24px

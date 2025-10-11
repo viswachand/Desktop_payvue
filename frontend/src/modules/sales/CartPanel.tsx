@@ -6,6 +6,7 @@ import AddCustomerDialog from "./components/AddCustomerDialog";
 import CartSummary from "./components/CartSummary";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+
 import {
   selectCartItems,
   removeFromCart,
@@ -25,7 +26,7 @@ import {
 import type { AppDispatch } from "@/app/store";
 import { Customer } from "@payvue/shared/types/customer";
 import { calculateSaleTotals } from "@/utils/saleHelpers";
-import { Height } from "@mui/icons-material";
+import { selectAdminConfig } from "@/features/admin/adminSlice";
 
 export default function CartPanel() {
   const theme = useTheme();
@@ -37,6 +38,8 @@ export default function CartPanel() {
   const customer = useSelector(selectCustomer);
   const discount = useSelector(selectDiscount);
   const comment = useSelector(selectComment);
+  const admin = useSelector(selectAdminConfig);
+  const taxRate = admin?.taxRate ?? 8; // fallback default
 
   // Snackbar state
   const [snackOpen, setSnackOpen] = useState(false);
@@ -45,22 +48,26 @@ export default function CartPanel() {
     "error" | "warning" | "success"
   >("error");
 
+  // Customer Dialog
   const [openDialog, setOpenDialog] = useState(false);
 
-  // Centralized sale calculations
+  // ✅ Correct totals (with dynamic tax)
   const { subtotal, tax, total } = useMemo(
-    () => calculateSaleTotals(cart, discount),
-    [cart, discount]
+    () => calculateSaleTotals(cart, discount, taxRate),
+    [cart, discount, taxRate]
   );
 
   // Snackbar helper
-  const showSnack = (message: string, severity: "error" | "warning" | "success") => {
+  const showSnack = (
+    message: string,
+    severity: "error" | "warning" | "success"
+  ) => {
     setSnackMessage(message);
     setSnackSeverity(severity);
     setSnackOpen(true);
   };
 
-  // Customer actions
+  // 🧍 Customer actions
   const handleSaveCustomer = (data: Customer) => {
     dispatch(setCustomer(data));
     setOpenDialog(false);
@@ -70,13 +77,13 @@ export default function CartPanel() {
     dispatch(clearCustomer());
   };
 
-  // Cart actions
+  // 🛒 Cart actions
   const handleRemoveItem = (id: string) => {
     dispatch(removeFromCart(id));
     showSnack("Item removed from cart", "warning");
   };
 
-  // Payment validation
+  // 💳 Payment validation
   const handlePayment = () => {
     if (!customer) {
       showSnack("Please add a customer before proceeding.", "error");
@@ -107,10 +114,12 @@ export default function CartPanel() {
         height: "80%",
         flex: 1,
         p: 2,
+        borderRadius: theme.shape.borderRadius,
         bgcolor: theme.palette.background.paper,
+        border: `1px solid ${theme.palette.divider}`,
       }}
     >
-      {/* Customer Section */}
+      {/* 👤 Customer Section */}
       {!customer ? (
         <Button
           variant="outlined"
@@ -119,12 +128,9 @@ export default function CartPanel() {
           sx={{
             mb: 2,
             textTransform: "none",
-            borderRadius: 1,
+            borderRadius: theme.shape.borderRadius,
             fontWeight: 500,
-            borderColor:
-              theme.palette.mode === "light"
-                ? theme.palette.grey[400]
-                : theme.palette.grey[300],
+            border: `1px solid ${theme.palette.divider}`,
             color:
               theme.palette.mode === "light"
                 ? theme.palette.grey[800]
@@ -199,11 +205,13 @@ export default function CartPanel() {
             </IconButton>
           </Box>
 
-          <Box sx={{ mb: 2, borderBottom: `1px solid ${theme.palette.grey[300]}` }} />
+          <Box
+            sx={{ mb: 2, borderBottom: `1px solid ${theme.palette.grey[300]}` }}
+          />
         </>
       )}
 
-      {/* Cart Items */}
+      {/* 🛍️ Cart Items */}
       <Box
         sx={{
           flexGrow: 1,
@@ -228,11 +236,18 @@ export default function CartPanel() {
                 <Typography variant="body2" color="text.secondary">
                   Qty: {item.qty}
                 </Typography>
+
+                <Typography variant="caption" color="text.secondary">
+                  Type:{" "}
+                  {item.itemType
+                    ? item.itemType.charAt(0).toUpperCase() + item.itemType.slice(1)
+                    : "—"}
+                </Typography>
               </Box>
 
               <Stack direction="row" alignItems="center" spacing={0.5}>
                 <Typography fontWeight={500}>
-                  ${(item.costPrice ? item.costPrice : 0 * item.qty).toFixed(2)}
+                  ${(item.costPrice * item.qty).toFixed(2)}
                 </Typography>
                 <IconButton
                   size="small"
@@ -262,16 +277,17 @@ export default function CartPanel() {
         )}
       </Box>
 
-      {/* Summary Section */}
+      {/* 🧾 Summary Section */}
       <CartSummary
         subtotal={subtotal}
         tax={tax}
         total={total}
+        taxRate={taxRate}
         onDiscountChange={(value) => dispatch(setDiscount(Number(value)))}
         onCommentChange={(value) => dispatch(setComment(value))}
       />
 
-      {/* Payment Button */}
+      {/* 💳 Payment Button */}
       <Button
         variant="contained"
         color="primary"
@@ -295,14 +311,14 @@ export default function CartPanel() {
         <Typography fontWeight={700}>${total.toFixed(2)}</Typography>
       </Button>
 
-      {/* Customer Dialog */}
+      {/* 🧍 Customer Dialog */}
       <AddCustomerDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         onSave={handleSaveCustomer}
       />
 
-      {/* Snackbar */}
+      {/* 🔔 Snackbar */}
       <Snackbar
         open={snackOpen}
         onClose={() => setSnackOpen(false)}

@@ -9,6 +9,7 @@ export interface Item {
     costPrice: number;
     unitPrice?: number;
     quantity?: number;
+    itemType:string;
 
     // optional
     style?: string;

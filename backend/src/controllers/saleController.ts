@@ -11,142 +11,181 @@ import { Sale as SaleType } from "@payvue/shared/types/sale";
 import { notifyN8n } from "../services/n8nService";
 
 /* ------------------------ Config ------------------------ */
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "http://localhost:5678/webhook/sale-notify";
+const N8N_WEBHOOK_URL =
+  process.env.N8N_WEBHOOK_URL || "http://localhost:5678/webhook/sale-notify";
 
 /* ------------------------ Create Sale ------------------------ */
 export const createSale = asyncHandler(async (req: Request, res: Response) => {
-    const {
-        customerInformation,
-        items,
-        saleType,
-        discountTotal = 0,
-        installments = [],
-        policyTitle,
-        policyDescription,
-        isLayaway = false,
-        isRefund = false,
-        refundedSaleId,
-    } = req.body as SaleType;
+  const {
+    customerInformation,
+    items,
+    saleType,
+    discountTotal = 0,
+    installments = [],
+    policyTitle,
+    policyDescription,
+    comment,
+    isLayaway = false,
+    isRefund = false,
+    refundedSaleId,
+    advanceAmount = 0, // 💰 New
+    deliveryDate, // 📅 For custom orders
+  } = req.body as SaleType;
 
-    // ✅ Validation
-    if (!items?.length) throw new BadRequestError("No items provided for sale.");
-    if (!customerInformation?.firstName || !customerInformation?.phone)
-        throw new BadRequestError("Customer information is incomplete.");
-    if (!policyTitle || !policyDescription)
-        throw new BadRequestError("Sale policy details are required.");
+  // ✅ Validation
+  if (!items?.length)
+    throw new BadRequestError("No items provided for sale.");
+  if (!customerInformation?.firstName || !customerInformation?.phone)
+    throw new BadRequestError("Customer information is incomplete.");
+  if (!policyTitle || !policyDescription)
+    throw new BadRequestError("Sale policy details are required.");
 
-    // ✅ Build sale items
-    const saleItems = await buildSaleItems(items);
-    if (!saleItems.length) throw new BadRequestError("Sale must include items.");
+  // ✅ Build sale items
+  const saleItems = await buildSaleItems(items);
+  if (!saleItems.length)
+    throw new BadRequestError("Sale must include items.");
 
-    // ✅ Calculate totals
-    const { subtotal, tax, total } = await calculateTotals(saleItems, discountTotal);
-    const paidAmount = installments.reduce((acc, i) => acc + toNumber(i.amount), 0);
-    const balanceAmount = Math.max(0, total - paidAmount);
-    const invoiceNumber = `VCR-${Date.now()}`;
+  // ✅ Detect if this is a custom order
+  const isCustomOrder = saleItems.some((i) => i.type === "custom");
 
-    // ✅ Create & Save
-    const sale = Sale.build({
-        invoiceNumber,
-        customerInformation,
-        items: saleItems,
-        subtotal,
-        tax,
-        discountTotal,
-        total,
-        saleType: saleType,
-        paidAmount,
-        balanceAmount,
-        status: isRefund
-            ? "refunded"
-            : isLayaway
-                ? balanceAmount > 0
-                    ? "installment"
-                    : "paid"
-                : "paid",
-        policyTitle,
-        policyDescription,
-        isLayaway,
-        installments,
-        isRefund,
-        refundedSaleId,
-    });
+  // ✅ Calculate totals
+  const { subtotal, tax, total } = await calculateTotals(
+    saleItems,
+    discountTotal
+  );
 
-    const savedSale = await sale.save();
+  // ✅ Compute payment info
+  const paidAmount = installments.reduce(
+    (acc, i) => acc + toNumber(i.amount),
+    0
+  );
 
-    // await notifyN8n("sale.created", {
-    //     invoiceNumber,
-    //     firstName: customerInformation.firstName,
-    //     phone: customerInformation.phone,
-    //     email: customerInformation.email,
-    //     total,
-    //     isLayaway,
-    //     createdAt: savedSale.createdAt,
-    // });
+  // If advance is passed (custom order), treat that as paid amount
+  const effectivePaidAmount = Math.max(paidAmount, toNumber(advanceAmount));
+  const balanceAmount = Math.max(0, total - effectivePaidAmount);
 
-    const inventoryItemIds = saleItems
-        .filter((i) => i.type === "inventory" && i.itemId)
-        .map((i) => i.itemId);
+  // ✅ Invoice Number
+  const invoiceNumber = `VCR-${Date.now()}`;
 
-    if (inventoryItemIds.length) {
-        await Item.updateMany({ _id: { $in: inventoryItemIds } }, { $set: { isSold: true } });
-    }
+  // ✅ Create & Save
+  const sale = Sale.build({
+    invoiceNumber,
+    customerInformation,
+    items: saleItems,
+    subtotal,
+    tax,
+    discountTotal,
+    total,
+    saleType,
+    paidAmount: effectivePaidAmount,
+    balanceAmount,
+    advanceAmount: toNumber(advanceAmount),
+    status: isRefund
+      ? "refunded"
+      : isCustomOrder
+      ? "pending" 
+      : isLayaway
+      ? balanceAmount > 0
+        ? "installment"
+        : "paid"
+      : "paid",
+    policyTitle,
+    policyDescription,
+    comment,
+    isLayaway,
+    installments,
+    isRefund,
+    refundedSaleId,
+    isCustomOrder,
+    deliveryDate,
+  });
 
+  const savedSale = await sale.save();
 
-    res.status(201).json({
-        success: true,
-        message: "Sale created successfully",
-        data: sanitizeDocs(savedSale),
-    });
+  /* 🧾 Mark inventory items as sold */
+  const inventoryItemIds = saleItems
+    .filter((i) => i.type === "inventory" && i.itemId)
+    .map((i) => i.itemId);
+
+  if (inventoryItemIds.length) {
+    await Item.updateMany(
+      { _id: { $in: inventoryItemIds } },
+      { $set: { isSold: true } }
+    );
+  }
+
+  /* 🔔 Notify via n8n (optional) */
+  // try {
+  //   await notifyN8n("sale.created", {
+  //     invoiceNumber,
+  //     firstName: customerInformation.firstName,
+  //     phone: customerInformation.phone,
+  //     email: customerInformation.email,
+  //     total,
+  //     isLayaway,
+  //     isCustomOrder,
+  //     createdAt: savedSale.createdAt,
+  //   });
+  // } catch (err) {
+  //   console.warn("[n8n] Sale webhook failed:", (err as Error).message);
+  // }
+
+  res.status(201).json({
+    success: true,
+    message: isCustomOrder
+      ? "Custom order created successfully"
+      : "Sale created successfully",
+    data: sanitizeDocs(savedSale),
+  });
 });
 
 /* ------------------------ Get All Sales ----------------------- */
 export const getSales = asyncHandler(async (_req: Request, res: Response) => {
-    const sales = await Sale.find({}).sort({ createdAt: -1 });
-    res.status(200).json({
-        success: true,
-        message: "Sales fetched successfully",
-        data: sanitizeDocs(sales),
-    });
+  const sales = await Sale.find({}).sort({ createdAt: -1 });
+  res.status(200).json({
+    success: true,
+    message: "Sales fetched successfully",
+    data: sanitizeDocs(sales),
+  });
 });
 
 /* ----------------------- Get Sale by ID ----------------------- */
 export const getSaleById = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const sale = await Sale.findById(id).lean();
-    if (!sale) throw new BadRequestError(`Sale with ID ${id} not found`);
-    res.status(200).json({
-        success: true,
-        message: "Sale details fetched",
-        data: sanitizeDocs(sale),
-    });
+  const { id } = req.params;
+  const sale = await Sale.findById(id).lean();
+  if (!sale) throw new BadRequestError(`Sale with ID ${id} not found`);
+  res.status(200).json({
+    success: true,
+    message: "Sale details fetched",
+    data: sanitizeDocs(sale),
+  });
 });
 
 /* ------------------------ Refund Sale ------------------------- */
 export const refundSale = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const sale = await Sale.findById(id);
-    if (!sale) throw new BadRequestError(`Sale with ID ${id} not found`);
-    if (sale.isRefund) throw new BadRequestError("This sale is already refunded.");
+  const { id } = req.params;
+  const sale = await Sale.findById(id);
+  if (!sale) throw new BadRequestError(`Sale with ID ${id} not found`);
+  if (sale.isRefund) throw new BadRequestError("This sale is already refunded.");
 
-    sale.isRefund = true;
-    sale.status = "refunded";
-    await sale.save();
+  sale.isRefund = true;
+  sale.status = "refunded";
+  await sale.save();
 
-    // ✅ Optional: Trigger refund workflow
-    try {
-        await axios.post(`${N8N_WEBHOOK_URL}-refund`, {
-            saleId: sale._id,
-            invoiceNumber: sale.invoiceNumber,
-            refundedAt: sale.updatedAt,
-        });
-    } catch (err) {
-        console.warn("[n8n] Refund webhook failed:", (err as Error).message);
-    }
-
-    res.status(200).json({
-        success: true,
-        message: "Sale refunded successfully",
-        data: sanitizeDocs(sale),
+  // ✅ Optional: Trigger refund workflow
+  try {
+    await axios.post(`${N8N_WEBHOOK_URL}-refund`, {
+      saleId: sale._id,
+      invoiceNumber: sale.invoiceNumber,
+      refundedAt: sale.updatedAt,
     });
+  } catch (err) {
+    console.warn("[n8n] Refund webhook failed:", (err as Error).message);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Sale refunded successfully",
+    data: sanitizeDocs(sale),
+  });
 });

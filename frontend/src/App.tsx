@@ -10,7 +10,6 @@ import PublicRoute from "@/routes/PublicRoute";
 // Layout
 import AppLayout from "@/components/layout/AppLayout";
 
-
 // App props (theme toggling)
 interface AppProps {
   toggleTheme: () => void;
@@ -20,9 +19,19 @@ interface AppProps {
 // Lazy-loaded pages
 const Login = lazy(() => import("@/page/Login"));
 const Dashboard = lazy(() => import("@/page/Dashboard"));
-const AdminPanel = lazy(() => import("@/page/Admin"));
+
+
+//Sale Routes
 const Sales = lazy(() => import("@/modules/sales/ItemSale"));
 const Service = lazy(() => import("@/modules/sales/serviceSale"));
+const Custom = lazy(() => import("@/modules/sales/customSale"));
+const History = lazy(() => import("@/modules/sales/SaleHistoryPage"));
+
+//AdminConfig
+const Admin = lazy(() => import("@/page/Admin"));
+
+const SuccessScreen = lazy(() => import("@/page/PaymentSuccessPage"))
+
 const PaymentScreen = lazy(() => import("@/modules/sales/PaymentScreen"));
 const PageNotFound = lazy(() => import("@/page/PageNotFound"));
 const Unauthorized = lazy(() => import("@/page/Unauthorized"));
@@ -44,14 +53,16 @@ function App({ toggleTheme, currentMode }: AppProps) {
           >
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/sale/item" element={<Sales />} />
-             <Route path="/sale/service" element={<Service />} />
-            <Route path="/sale/item/payment"  element={<PaymentScreen />} />
+            <Route path="/sale/service" element={<Service />} />
+            <Route path="/sale/custom" element={<Custom />} />
+            <Route path="/sale/history" element={<History />} />
+            <Route path="/sale/item/payment" element={<PaymentScreen />} />
+
+            <Route path="/success" element={<SuccessScreen />} />
+            <Route path="/admin" element={<Admin />} />
           </Route>
         </Route>
 
-        <Route element={<AdminRoute />}>
-          <Route path="/admin" element={<AdminPanel />} />
-        </Route>
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>

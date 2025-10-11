@@ -12,16 +12,16 @@ export const lightPalette: PaletteOptions = {
         contrastText: "#FFFFFF",
     },
     background: {
-        default: "#F9FAFB",
+        default: "rgb(250, 250, 251)",
         paper: "#FFFFFF",
         login: "linear-gradient(135deg, #6366F1 0%, #9333EA 100%)",
         auth: "#4F46E5",
     },
     text: {
         primary: "#111827",
-        secondary: "#4B5563",
+        secondary: "#595959",
     },
-    divider: "#E5E7EB",
+    divider: "#e6ebf1",
     success: {
         main: "#2E7D32",
         contrastText: "#FFFFFF",

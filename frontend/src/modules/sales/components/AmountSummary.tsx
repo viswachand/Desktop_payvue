@@ -13,20 +13,23 @@ import { selectCartItems, CartItem } from "@/features/cart/cartSlice";
 import { selectDiscount, selectComment } from "@/features/payments/paymentSlice";
 import { useMemo } from "react";
 import { calculateSaleTotals } from "@/utils/saleHelpers";
+import { selectAdminConfig } from "@/features/admin/adminSlice";
 
 export default function AmountSummary() {
   const theme = useTheme();
   const navigate = useNavigate();
 
-  // Redux state
+  const admin = useSelector(selectAdminConfig);
+  const taxRate = admin?.taxRate ?? 8; // percent (or decimal, handled below)
+
   const cart = useSelector(selectCartItems);
   const discount = useSelector(selectDiscount);
   const comment = useSelector(selectComment);
 
-  // Derived totals using shared helper
+  // ✅ Calculate totals using actual taxRate
   const { subtotal, tax, total } = useMemo(
-    () => calculateSaleTotals(cart, discount),
-    [cart, discount]
+    () => calculateSaleTotals(cart, discount, taxRate),
+    [cart, discount, taxRate]
   );
 
   const totalItems = useMemo(
@@ -34,7 +37,6 @@ export default function AmountSummary() {
     [cart]
   );
 
-  // Render
   return (
     <Box
       sx={{
@@ -64,7 +66,7 @@ export default function AmountSummary() {
         </Typography>
       </Stack>
 
-      {/* Item List */}
+      {/* Items */}
       <Box
         sx={{
           maxHeight: 260,
@@ -114,20 +116,22 @@ export default function AmountSummary() {
       </Stack>
 
       <Stack direction="row" justifyContent="space-between" mb={0.6}>
-        <Typography color="text.secondary">Tax (15%)</Typography>
+        {/* ✅ Corrected tax line */}
+        <Typography color="text.secondary">
+          Tax ({taxRate > 1 ? taxRate.toFixed(2) : (taxRate * 100).toFixed(2)}%)
+        </Typography>
         <Typography fontWeight={500}>${tax.toFixed(2)}</Typography>
       </Stack>
 
       <Stack direction="row" justifyContent="space-between" mb={0.6}>
         <Typography color="text.secondary">Discount</Typography>
         <Typography color="success.main" fontWeight={500}>
-          - ${discount?.toFixed(2) ?? "0.00"}
+          -${(discount ?? 0).toFixed(2)}
         </Typography>
       </Stack>
 
       <Divider sx={{ my: 1.2 }} />
 
-      {/* Total */}
       <Stack
         direction="row"
         justifyContent="space-between"

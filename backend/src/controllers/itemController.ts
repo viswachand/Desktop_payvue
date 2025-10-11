@@ -38,6 +38,7 @@ const extractItemFields = (body: any) => {
         imageUrl,
         isArchived,
         isSold,
+        itemType
     } = body;
 
     return {
@@ -68,6 +69,7 @@ const extractItemFields = (body: any) => {
         imageUrl,
         isArchived,
         isSold,
+        itemType: (itemType ?? "inventory").toLowerCase(),
     };
 };
 

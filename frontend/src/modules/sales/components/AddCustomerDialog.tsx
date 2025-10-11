@@ -4,8 +4,14 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
-import {Typography,useTheme, Grid}  from "@/components/common"; 
-import { TextField, Button } from "@/components/common";
+import {
+  Typography,
+  useTheme,
+  Grid,
+  TextField,
+  Divider,
+} from "@/components/common";
+import { Button } from "@/components/common";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Customer } from "@payvue/shared/types/customer";
@@ -53,16 +59,13 @@ export default function AddCustomerDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 1,
-          boxShadow:
-            theme.palette.mode === "light"
-              ? "0px 6px 24px rgba(0,0,0,0.08)"
-              : "0px 6px 24px rgba(0,0,0,0.4)",
-          backgroundColor: theme.palette.background.paper,
+      maxWidth="sm"
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: theme.shape.borderRadius,
+            backgroundColor: theme.palette.background.paper,
+          },
         },
       }}
     >
@@ -74,38 +77,51 @@ export default function AddCustomerDialog({
           gap: 0.5,
         }}
       >
-        <Typography variant="h6" fontWeight={700}>
+        <Typography variant="h6" fontWeight={500}>
           Add Customer
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Enter customer details to attach to this sale.
-        </Typography>
       </DialogTitle>
+      <Divider sx={{ mt: 2 }} />
 
       <DialogContent
-        dividers
         sx={{
-          mt: 2,
           px: 3,
           py: 2,
-          backgroundColor:
-            theme.palette.mode === "light"
-              ? theme.palette.grey[50]
-              : theme.palette.background.default,
+          backgroundColor: theme.palette.background.paper,
         }}
       >
         <form onSubmit={formik.handleSubmit}>
           <Grid container spacing={2.2}>
             {[
-              { name: "firstName", label: "First Name" },
-              { name: "lastName", label: "Last Name" },
-              { name: "phone", label: "Phone" },
-              { name: "email", label: "Email" },
-              { name: "address1", label: "Address 1" },
-              { name: "address2", label: "Address 2" },
-              { name: "city", label: "City" },
-              { name: "postalCode", label: "Postal Code" },
-              { name: "state", label: "State" },
+              {
+                name: "firstName",
+                label: "First Name",
+                placeholder: "Enter First Name",
+              },
+              {
+                name: "lastName",
+                label: "Last Name",
+                placeholder: "Enter Last Name",
+              },
+              { name: "phone", label: "Phone", placeholder: "Enter Phone" },
+              { name: "email", label: "Email", placeholder: "Enter Email" },
+              {
+                name: "address1",
+                label: "Address 1",
+                placeholder: "Enter Address 1",
+              },
+              {
+                name: "address2",
+                label: "Address 2",
+                placeholder: "Enter Address 2",
+              },
+              { name: "city", label: "City", placeholder: "Enter City" },
+              {
+                name: "postalCode",
+                label: "Postal Code",
+                placeholder: "Enter Postal Code",
+              },
+              { name: "state", label: "State", placeholder: "Enter State" },
             ].map((field) => (
               <Grid
                 key={field.name}
@@ -117,11 +133,9 @@ export default function AddCustomerDialog({
                 }}
               >
                 <TextField
-                  variant="outlined"
-                  size="medium"
-                  fullWidth
                   name={field.name}
                   label={field.label}
+                  placeholder={field.placeholder}
                   value={(formik.values as any)[field.name]}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     if (field.name === "phone") {
@@ -140,15 +154,6 @@ export default function AddCustomerDialog({
                     formik.touched[field.name as keyof Customer] &&
                     formik.errors[field.name as keyof Customer]
                   }
-                  InputProps={{
-                    sx: {
-                      borderRadius: 2,
-                      bgcolor:
-                        theme.palette.mode === "light"
-                          ? "#fff"
-                          : theme.palette.grey[900],
-                    },
-                  }}
                 />
               </Grid>
             ))}
@@ -156,6 +161,7 @@ export default function AddCustomerDialog({
         </form>
       </DialogContent>
 
+      {/* ----- Footer Actions ----- */}
       <DialogActions
         sx={{
           px: 3,
@@ -170,7 +176,7 @@ export default function AddCustomerDialog({
           onClick={onClose}
           color="inherit"
           sx={{
-            borderRadius: 2,
+            borderRadius: theme.shape.borderRadius,
             px: 3,
             textTransform: "none",
           }}
@@ -183,14 +189,8 @@ export default function AddCustomerDialog({
           color="primary"
           onClick={formik.submitForm}
           sx={{
-            borderRadius: 2,
+            borderRadius: theme.shape.borderRadius,
             px: 3,
-            textTransform: "none",
-            fontWeight: 600,
-            boxShadow:
-              theme.palette.mode === "light"
-                ? "0px 2px 6px rgba(0,0,0,0.1)"
-                : "0px 2px 6px rgba(0,0,0,0.5)",
           }}
         >
           Save

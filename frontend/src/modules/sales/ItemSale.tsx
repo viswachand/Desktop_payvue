@@ -130,24 +130,18 @@ export default function ItemSale() {
                 return (
                   <Grid key={productId} size={{ md: 3 }}>
                     <Card
+                    elevation={0}
                       sx={{
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "space-between",
                         height: "100%",
-                        borderRadius: 2,
-                        boxShadow:
-                          theme.palette.mode === "light"
-                            ? "0px 2px 6px rgba(0,0,0,0.08)"
-                            : "0px 2px 8px rgba(0,0,0,0.5)",
+                        borderRadius: 1,
+                        border:`0.7px solid ${theme.palette.divider}`,
                         backgroundColor: theme.palette.background.paper,
                         transition: "all 0.25s ease",
                         "&:hover": {
                           transform: "translateY(-3px)",
-                          boxShadow:
-                            theme.palette.mode === "light"
-                              ? "0px 6px 16px rgba(0,0,0,0.12)"
-                              : "0px 6px 16px rgba(0,0,0,0.6)",
                         },
                       }}
                     >

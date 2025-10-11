@@ -24,20 +24,15 @@ export default function CustomerCard() {
       sx={{
         p: 2,
         border: `1px solid ${theme.palette.divider}`,
-        borderRadius: 2,
+        borderRadius: theme.shape.borderRadius,
         backgroundColor:
           theme.palette.mode === "light"
             ? theme.palette.background.paper
             : theme.palette.background.default,
-        boxShadow:
-          theme.palette.mode === "light"
-            ? "0 1px 3px rgba(0,0,0,0.06)"
-            : "0 1px 3px rgba(0,0,0,0.4)",
         transition: "all 0.2s ease",
       }}
     >
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        {/* 👤 Avatar + Info */}
         <Stack direction="row" spacing={2} alignItems="center">
           <Box
             sx={{

@@ -12,11 +12,13 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 
+
+
 interface CartSummaryProps {
   subtotal: number;
   tax: number;
   total: number;
-  taxRate?: number;
+  taxRate?: number; 
   onDiscountChange?: (value: number) => void;
   onCommentChange?: (value: string) => void;
 }
@@ -25,7 +27,7 @@ export default function CartSummary({
   subtotal,
   tax,
   total,
-  taxRate = 0.15,
+  taxRate,
   onDiscountChange,
   onCommentChange,
 }: CartSummaryProps) {
@@ -38,7 +40,9 @@ export default function CartSummary({
 
   const [snackOpen, setSnackOpen] = useState(false);
   const [snackMessage, setSnackMessage] = useState("");
-  const [snackSeverity, setSnackSeverity] = useState<"error" | "warning" | "success">("warning");
+  const [snackSeverity, setSnackSeverity] = useState<
+    "error" | "warning" | "success"
+  >("warning");
 
   const showSnack = useCallback(
     (message: string, severity: "error" | "warning" | "success") => {
@@ -78,6 +82,7 @@ export default function CartSummary({
     showSnack("Comment added.", "success");
   };
 
+  // ✅ Calculate final total dynamically (with discount)
   const finalTotal = useMemo(() => Math.max(total - discount, 0), [total, discount]);
 
   return (
@@ -140,7 +145,12 @@ export default function CartSummary({
 
         {/* Discount Field */}
         {showDiscount && (
-          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={1.5}
+          >
             <Typography variant="body2" color="text.secondary">
               Discount
             </Typography>
@@ -171,7 +181,9 @@ export default function CartSummary({
               rows={2}
               fullWidth
               value={comment}
-               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setComment(e.target.value)
+              }
               placeholder="Add a note or comment"
               sx={{ "& .MuiOutlinedInput-root": { borderRadius: 1.5 } }}
             />
@@ -211,7 +223,9 @@ export default function CartSummary({
 
         {/* Tax & Total */}
         <Stack direction="row" justifyContent="space-between" mb={0.5}>
-          <Typography color="text.secondary">Tax ({(taxRate * 100).toFixed(0)}%)</Typography>
+          <Typography color="text.secondary">
+            Tax ({taxRate?.toFixed(2)}%)
+          </Typography>
           <Typography>{tax.toFixed(2)}</Typography>
         </Stack>
 

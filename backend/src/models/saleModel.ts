@@ -97,6 +97,7 @@ const saleSchema = new mongoose.Schema<SaleDoc>(
 
         policyTitle: { type: String, required: true },
         policyDescription: { type: String, required: true },
+        comment:{type:String},
 
         isLayaway: { type: Boolean, default: false },
         installments: [installmentSchema],

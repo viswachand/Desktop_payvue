@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 import type { Item } from "@payvue/shared/types/item";
+import { normalizeCartItem } from "@/utils/cartAdapter"; 
 
 // -----------------------------------------
 // Types
@@ -28,21 +29,26 @@ const cartSlice = createSlice({
     initialState,
     reducers: {
         // ✅ Add item or increment if exists
-        addToCart: (state, action: PayloadAction<Item>) => {
+        addToCart: (state, action: PayloadAction<Partial<Item>>) => {
+            // Normalize incoming item shape (ensures itemName, costPrice, etc.)
+            const normalized = normalizeCartItem(action.payload);
+
             const existing = state.items.find(
-                (i: Item) => i.id === action.payload.id
+                (i: CartItem) => i.id === normalized.id
             );
 
             if (existing) {
                 existing.qty += 1;
             } else {
-                state.items.push({ ...action.payload, qty: 1 });
+                state.items.push({ ...normalized, qty: 1 });
             }
         },
 
         // ✅ Remove item
         removeFromCart: (state, action: PayloadAction<string>) => {
-            state.items = state.items.filter((i: Item) => i.id !== action.payload);
+            state.items = state.items.filter(
+                (i: CartItem) => i.id !== action.payload
+            );
         },
 
         // ✅ Update quantity manually
@@ -50,7 +56,7 @@ const cartSlice = createSlice({
             state,
             action: PayloadAction<{ id: string; qty: number }>
         ) => {
-            const item = state.items.find((i: Item) => i.id === action.payload.id);
+            const item = state.items.find((i: CartItem) => i.id === action.payload.id);
             if (item) {
                 item.qty = action.payload.qty;
             }

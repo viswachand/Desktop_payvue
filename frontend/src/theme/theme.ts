@@ -4,19 +4,22 @@ import { typography } from "./typography";
 import { createCommonComponents } from "./components/common";
 
 export const lightTheme = createTheme({
-    palette: lightPalette,
-    typography,
+  shape: {
+    borderRadius: 2,
+  },
+  palette: lightPalette,
+  typography,
 });
 
 lightTheme.components = {
-    ...createCommonComponents(lightTheme),
+  ...createCommonComponents(lightTheme),
 };
 
 export const darkTheme = createTheme({
-    palette: darkPalette,
-    typography,
+  palette: darkPalette,
+  typography,
 });
 
 darkTheme.components = {
-    ...createCommonComponents(darkTheme),
+  ...createCommonComponents(darkTheme),
 };

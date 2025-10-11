@@ -1,10 +1,11 @@
-
 export interface AdminConfig {
-    id?: string;
-    companyName: string;
-    companyAddress: string;
-    companyPhone: string;
-    companyEmail: string;
-    companyFax?: string;
-    taxRate: number;
+  id?: string;
+  companyName: string;
+  companyAddress: string;
+  companyPhone: string;
+  companyEmail: string;
+  companyFax?: string;
+  taxRate: number;
+  createdAt?: string;
+  updatedAt?: string;
 }

@@ -50,5 +50,5 @@ export const menuItems = [
     icon: <PolicyIcon />,
     path: "/policies",
   },
-  { label: "Admin Config", icon: <SettingsIcon />, path: "/admin - config" },
+  { label: "Admin Config", icon: <SettingsIcon />, path: "/admin" },
 ];

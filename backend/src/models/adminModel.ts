@@ -29,6 +29,7 @@ const adminConfigSchema = new mongoose.Schema<AdminConfigDoc>(
         taxRate: { type: Number, required: true, min: 0 },
     },
     {
+        timestamps: true,
         toJSON: globalToJSONTransform,
     }
 );

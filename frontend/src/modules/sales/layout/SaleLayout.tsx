@@ -15,10 +15,7 @@ export default function SaleLayout({ children }: SaleLayoutProps) {
       sx={{
         display: "flex",
         height: `calc(100vh - ${APPBAR_HEIGHT}px)`,
-        backgroundColor:
-          theme.palette.mode === "light"
-            ? theme.palette.grey[100]
-            : theme.palette.background.default,
+        backgroundColor:theme.palette.background.default,
         overflow: "hidden",
         p: 0,
       }}
@@ -41,7 +38,9 @@ export default function SaleLayout({ children }: SaleLayoutProps) {
           width: CART_WIDTH,
           p: 3,
           overflowY: "auto",
+
         }}
+        
       >
         <CartPanel />
       </Box>

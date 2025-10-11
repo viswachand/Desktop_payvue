@@ -6,6 +6,7 @@ import customerReducer from "@/features/customers/customerSlice";
 import paymentReducer from "@/features/payments/paymentSlice";
 import policyReducer from "@/features/policy/policySlice";
 import saleReducer from "@/features/sales/saleSlice";
+import adminReducer from "@/features/admin/adminSlice"
 
 export const store = configureStore({
     reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
         payment: paymentReducer,
         policy: policyReducer,
         sale: saleReducer,
+        admin:adminReducer
     },
 });
 

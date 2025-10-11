@@ -52,8 +52,6 @@ export const fetchCurrentUser = createAsyncThunk<
         const data = await safeApiCall<User>(() =>
             API.get("/api/users/currentuser")
         );
-
-        // API returns data as array [user]
         return Array.isArray(data) ? data[0] : data;
     } catch (error) {
         return rejectWithValue(extractAxiosErrorMessage(error));

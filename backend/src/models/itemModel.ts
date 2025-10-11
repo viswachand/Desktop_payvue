@@ -21,6 +21,7 @@ const itemSchema = new mongoose.Schema<ItemDoc>(
         itemSKU: { type: String, required: true, unique: true, uppercase: true, index: true },
         itemName: { type: String, required: true, trim: true },
         itemDescription: { type: String, required: true },
+        itemType: { type: String, required: true },
         itemCategory: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Category",

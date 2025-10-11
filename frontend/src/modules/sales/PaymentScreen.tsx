@@ -8,11 +8,13 @@ import {
   Snackbar,
   useTheme,
 } from "@/components/common";
+
 import SalePaymentLayout from "./layout/SalePaymentLayout";
 import AmountSummary from "./components/AmountSummary";
 import PaymentMethods from "./components/PaymentMethods";
 import CustomerCard from "./components/CustomerCard";
 import PaymentFooter from "./components/PaymentFooter";
+
 import {
   selectCartItems,
   clearCart,
@@ -30,7 +32,6 @@ import {
 import { createSale } from "@/features/sales/saleSlice";
 import { calculateSaleTotals } from "@/utils/saleHelpers";
 import type { AppDispatch } from "@/app/store";
-import type { Item } from "@payvue/shared/types/item";
 import type { PaymentMethod, SaleItemType } from "@payvue/shared/types/sale";
 
 export default function PaymentPage() {
@@ -90,23 +91,28 @@ export default function PaymentPage() {
     if (!installments.length)
       return showSnack("Add at least one payment method.", "error");
 
-    const saleType = cart.some(
-      (i: CartItem & { type?: string }) => i.type && i.type !== "inventory"
-    )
+    const saleType = cart.some((i) => i.itemType === "custom")
+      ? "custom"
+      : cart.some((i) =>
+          ["repair", "grill", "service"].includes(i.itemType ?? "")
+        )
       ? "service"
       : "inventory";
 
     const saleItems = cart.map((i: CartItem & { type?: string }) => ({
-      type: (i.type ?? "inventory") as SaleItemType,
+      type: (i.itemType ?? "inventory") as SaleItemType,
       itemId: i.id,
-      name: i.itemName,
+      name: i.itemName ?? i.itemName,
       costPrice: i.costPrice,
-      quantity: i.quantity!,
-      taxApplied: ((i.type ?? "inventory") as SaleItemType) === "inventory",
+      quantity: i.quantity ?? i.qty ?? 1,
+      taxApplied:
+        ((i.type ?? "inventory") as SaleItemType) === "inventory" ||
+        ((i.type ?? "inventory") as SaleItemType) === "custom",
     }));
-    // Final sale payload
+
+    // 📦 Final payload
     const salePayload = {
-      saleType, // "inventory" or "service"
+      saleType,
       customerInformation: customer,
       items: saleItems,
       discountTotal: discount || 0,
@@ -120,14 +126,15 @@ export default function PaymentPage() {
 
     try {
       const res = await dispatch(createSale(salePayload)).unwrap();
-      showSnack("Sale created successfully.", "success");
 
-      // Reset
-      dispatch(clearCart());
-      dispatch(clearCustomer());
-      dispatch(clearPayment());
-
-      setTimeout(() => navigate("/sale/item/success"), 1000);
+      if (res) {
+        dispatch(clearCart());
+        dispatch(clearCustomer());
+        dispatch(clearPayment());
+        navigate("/success");
+      } else {
+        showSnack("Failed to create sale. Please try again.", "error");
+      }
     } catch (err: any) {
       showSnack(`Failed to create sale: ${err.message ?? err}`, "error");
     }
@@ -138,7 +145,6 @@ export default function PaymentPage() {
   const totalPaid = installments.reduce((s, i) => s + i.amount, 0);
   const remaining = Math.max(total - totalPaid, 0);
 
-  // 🧩 UI
   return (
     <>
       <SalePaymentLayout

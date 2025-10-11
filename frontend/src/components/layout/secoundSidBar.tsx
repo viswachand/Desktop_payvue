@@ -6,8 +6,8 @@ import { APPBAR_HEIGHT, SIDEBAR_WIDTH, SUB_SIDEBAR_WIDTH } from "@/utils/constan
 const subMenuItems = [
   { label: "Item", path: "/sale/item" },
   { label: "Service", path: "/sale/service" },
-  { label: "Custom", path: "/sales/custom" },
-  { label: "Sale History", path: "/sales/history" },
+  { label: "Custom", path: "/sale/custom" },
+  { label: "Sale History", path: "/sale/history" },
 ];
 
 export default function SubSidebar() {

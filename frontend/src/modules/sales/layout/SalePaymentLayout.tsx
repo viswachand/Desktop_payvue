@@ -41,10 +41,6 @@ export default function SalePaymentLayout({ left, right }: SalePaymentLayoutProp
           p: 3,
           overflowY: "auto",
           backgroundColor: theme.palette.background.paper,
-          boxShadow:
-            theme.palette.mode === "light"
-              ? "rgba(0, 0, 0, 0.05) 0px 0px 6px"
-              : "rgba(0, 0, 0, 0.4) 0px 0px 6px",
         }}
       >
         {right}

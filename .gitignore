@@ -10,6 +10,11 @@ frontend/node_modules/
 backend/dist/
 backend/node_modules/
 app/dist/
+n8n/node_modules/
 
-# Env
+# Env files
+# .env files in root and frontend should be ignored
 .env
+frontend/.env
+
+# backend .env should be tracked, so it's NOT listed here

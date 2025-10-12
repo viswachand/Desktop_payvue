@@ -4,88 +4,91 @@ import { body } from "express-validator";
 import { BadRequestError } from "../errors/badRequest-error";
 import { Category } from "../models/categoryModel";
 import { validateRequest } from "../utils/validateRequest";
+import { successResponse, errorResponse } from "../utils/responseHandler";
 
-// ------------------- Create Category -------------------
-export const createCategory = asyncHandler(
-    async (req: Request, res: Response) => {
-        await validateRequest(req, [
-            body("name").notEmpty().withMessage("Category name is required"),
-        ]);
-        const { name } = req.body;
-        const existing = await Category.findOne({ name });
-        if (existing) throw new BadRequestError("Category already exists");
-        const category = Category.build({ name });
-        await category.save();
+/* ------------------------------------------------------------------ */
+/* -------------------------- Create Category ----------------------- */
+/* ------------------------------------------------------------------ */
+export const createCategory = asyncHandler(async (req: Request, res: Response) => {
+  try {
+    await validateRequest(req, [
+      body("name").notEmpty().withMessage("Category name is required"),
+    ]);
 
-        res.status(201).json({
-            success: true,
-            message: "Category created successfully",
-            data: category.toJSON(),
-        });
-    }
-);
+    const { name } = req.body;
+    const existing = await Category.findOne({ name });
 
-// ------------------- Get All Categories -------------------
-export const getCategories = asyncHandler(
-    async (_req: Request, res: Response) => {
-        const categories = await Category.find();
-        res.status(200).json({
-            success: true,
-            message: "Categories fetched successfully",
-            data: categories,
-        });
-    }
-);
+    if (existing) throw new BadRequestError("Category already exists");
 
-// ------------------- Get Category by ID -------------------
-export const getCategoryById = asyncHandler(
-    async (req: Request, res: Response) => {
-        const { id } = req.params;
-        if (!id) throw new BadRequestError("ID is required");
+    const category = Category.build({ name });
+    await category.save();
 
-        const category = await Category.findById(id);
-        if (!category) throw new BadRequestError("Category not found");
+    successResponse(res, 201, "Category created successfully", category);
+  } catch (error: any) {
+    errorResponse(res, error, "Failed to create category");
+  }
+});
 
-        res.status(200).json({
-            success: true,
-            message: "Category fetched successfully",
-            data: category,
-        });
-    }
-);
+/* ------------------------------------------------------------------ */
+/* -------------------------- Get All Categories -------------------- */
+/* ------------------------------------------------------------------ */
+export const getCategories = asyncHandler(async (_req: Request, res: Response) => {
+  try {
+    const categories = await Category.find().sort({ createdAt: -1 });
+    successResponse(res, 200, "Categories fetched successfully", categories);
+  } catch (error: any) {
+    errorResponse(res, error, "Failed to fetch categories");
+  }
+});
 
-// ------------------- Update Category -------------------
-export const updateCategory = asyncHandler(
-    async (req: Request, res: Response) => {
-        const { id } = req.params;
-        const { name } = req.body;
+/* ------------------------------------------------------------------ */
+/* -------------------------- Get Category by ID -------------------- */
+/* ------------------------------------------------------------------ */
+export const getCategoryById = asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!id) throw new BadRequestError("ID is required");
 
-        const category = await Category.findById(id);
-        if (!category) throw new BadRequestError("Category not found");
+    const category = await Category.findById(id);
+    if (!category) throw new BadRequestError("Category not found");
 
-        if (name) category.name = name;
+    successResponse(res, 200, "Category fetched successfully", category);
+  } catch (error: any) {
+    errorResponse(res, error, "Failed to fetch category by ID");
+  }
+});
 
-        await category.save();
+/* ------------------------------------------------------------------ */
+/* -------------------------- Update Category ----------------------- */
+/* ------------------------------------------------------------------ */
+export const updateCategory = asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
 
-        res.status(200).json({
-            success: true,
-            message: "Category updated successfully",
-            data: category,
-        });
-    }
-);
+    const category = await Category.findById(id);
+    if (!category) throw new BadRequestError("Category not found");
 
-// ------------------- Delete Category -------------------
-export const deleteCategory = asyncHandler(
-    async (req: Request, res: Response) => {
-        const { id } = req.params;
+    if (name) category.name = name;
+    await category.save();
 
-        const category = await Category.findByIdAndDelete(id);
-        if (!category) throw new BadRequestError("Category not found");
+    successResponse(res, 200, "Category updated successfully", category);
+  } catch (error: any) {
+    errorResponse(res, error, "Failed to update category");
+  }
+});
 
-        res.status(200).json({
-            success: true,
-            message: "Category deleted successfully",
-        });
-    }
-);
+/* ------------------------------------------------------------------ */
+/* -------------------------- Delete Category ----------------------- */
+/* ------------------------------------------------------------------ */
+export const deleteCategory = asyncHandler(async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const category = await Category.findByIdAndDelete(id);
+    if (!category) throw new BadRequestError("Category not found");
+
+    successResponse(res, 200, "Category deleted successfully");
+  } catch (error: any) {
+    errorResponse(res, error, "Failed to delete category");
+  }
+});

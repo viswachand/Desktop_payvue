@@ -32,7 +32,6 @@ export default function PaymentSuccessPage() {
         backgroundColor: theme.palette.background.default,
       }}
     >
-      {/* ✅ Animated success icon (pulsing loop) */}
       <motion.div
         animate={{
           scale: [1, 1.1, 1],
@@ -41,7 +40,7 @@ export default function PaymentSuccessPage() {
         transition={{
           duration: 1.5,
           ease: "easeInOut",
-          repeat: Infinity, // 🔁 Continuous animation
+          repeat: Infinity,
         }}
       >
         <CheckCircleOutlineIcon

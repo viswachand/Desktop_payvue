@@ -10,7 +10,6 @@ import { sanitizeDocs } from "../utils/sanitizeDocs";
 import { Sale as SaleType } from "@payvue/shared/types/sale";
 import { notifyN8n } from "../services/n8nService";
 
-/* ------------------------ Config ------------------------ */
 const N8N_WEBHOOK_URL =
   process.env.N8N_WEBHOOK_URL || "http://localhost:5678/webhook/sale-notify";
 
@@ -28,11 +27,10 @@ export const createSale = asyncHandler(async (req: Request, res: Response) => {
     isLayaway = false,
     isRefund = false,
     refundedSaleId,
-    advanceAmount = 0, // 💰 New
-    deliveryDate, // 📅 For custom orders
+    advanceAmount = 0,
+    deliveryDate,
   } = req.body as SaleType;
 
-  // ✅ Validation
   if (!items?.length)
     throw new BadRequestError("No items provided for sale.");
   if (!customerInformation?.firstName || !customerInformation?.phone)
@@ -40,34 +38,27 @@ export const createSale = asyncHandler(async (req: Request, res: Response) => {
   if (!policyTitle || !policyDescription)
     throw new BadRequestError("Sale policy details are required.");
 
-  // ✅ Build sale items
   const saleItems = await buildSaleItems(items);
   if (!saleItems.length)
     throw new BadRequestError("Sale must include items.");
 
-  // ✅ Detect if this is a custom order
   const isCustomOrder = saleItems.some((i) => i.type === "custom");
 
-  // ✅ Calculate totals
   const { subtotal, tax, total } = await calculateTotals(
     saleItems,
     discountTotal
   );
 
-  // ✅ Compute payment info
   const paidAmount = installments.reduce(
     (acc, i) => acc + toNumber(i.amount),
     0
   );
 
-  // If advance is passed (custom order), treat that as paid amount
   const effectivePaidAmount = Math.max(paidAmount, toNumber(advanceAmount));
   const balanceAmount = Math.max(0, total - effectivePaidAmount);
 
-  // ✅ Invoice Number
   const invoiceNumber = `VCR-${Date.now()}`;
 
-  // ✅ Create & Save
   const sale = Sale.build({
     invoiceNumber,
     customerInformation,
@@ -83,7 +74,7 @@ export const createSale = asyncHandler(async (req: Request, res: Response) => {
     status: isRefund
       ? "refunded"
       : isCustomOrder
-      ? "pending" 
+      ? "pending"
       : isLayaway
       ? balanceAmount > 0
         ? "installment"
@@ -102,7 +93,6 @@ export const createSale = asyncHandler(async (req: Request, res: Response) => {
 
   const savedSale = await sale.save();
 
-  /* 🧾 Mark inventory items as sold */
   const inventoryItemIds = saleItems
     .filter((i) => i.type === "inventory" && i.itemId)
     .map((i) => i.itemId);
@@ -113,22 +103,6 @@ export const createSale = asyncHandler(async (req: Request, res: Response) => {
       { $set: { isSold: true } }
     );
   }
-
-  /* 🔔 Notify via n8n (optional) */
-  // try {
-  //   await notifyN8n("sale.created", {
-  //     invoiceNumber,
-  //     firstName: customerInformation.firstName,
-  //     phone: customerInformation.phone,
-  //     email: customerInformation.email,
-  //     total,
-  //     isLayaway,
-  //     isCustomOrder,
-  //     createdAt: savedSale.createdAt,
-  //   });
-  // } catch (err) {
-  //   console.warn("[n8n] Sale webhook failed:", (err as Error).message);
-  // }
 
   res.status(201).json({
     success: true,
@@ -154,9 +128,10 @@ export const getSaleById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const sale = await Sale.findById(id).lean();
   if (!sale) throw new BadRequestError(`Sale with ID ${id} not found`);
+
   res.status(200).json({
     success: true,
-    message: "Sale details fetched",
+    message: "Sale details fetched successfully",
     data: sanitizeDocs(sale),
   });
 });
@@ -165,6 +140,7 @@ export const getSaleById = asyncHandler(async (req: Request, res: Response) => {
 export const refundSale = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const sale = await Sale.findById(id);
+
   if (!sale) throw new BadRequestError(`Sale with ID ${id} not found`);
   if (sale.isRefund) throw new BadRequestError("This sale is already refunded.");
 
@@ -172,16 +148,15 @@ export const refundSale = asyncHandler(async (req: Request, res: Response) => {
   sale.status = "refunded";
   await sale.save();
 
-  // ✅ Optional: Trigger refund workflow
-  try {
-    await axios.post(`${N8N_WEBHOOK_URL}-refund`, {
-      saleId: sale._id,
-      invoiceNumber: sale.invoiceNumber,
-      refundedAt: sale.updatedAt,
-    });
-  } catch (err) {
-    console.warn("[n8n] Refund webhook failed:", (err as Error).message);
-  }
+  // try {
+  //   await axios.post(`${N8N_WEBHOOK_URL}-refund`, {
+  //     saleId: sale._id,
+  //     invoiceNumber: sale.invoiceNumber,
+  //     refundedAt: sale.updatedAt,
+  //   });
+  // } catch (err) {
+  //   console.warn("[n8n] Refund webhook failed:", (err as Error).message);
+  // }
 
   res.status(200).json({
     success: true,

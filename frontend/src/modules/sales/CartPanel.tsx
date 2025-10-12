@@ -86,12 +86,12 @@ export default function CartPanel() {
   // 💳 Payment validation
   const handlePayment = () => {
     if (!customer) {
-      showSnack("Please add a customer before proceeding.", "error");
+      showSnack("Please add a customer before proceeding.", "warning");
       return;
     }
 
     if (cart.length < 1) {
-      showSnack("Add at least one item to the cart before paying.", "error");
+      showSnack("Add at least one item to the cart before paying.", "warning");
       return;
     }
 

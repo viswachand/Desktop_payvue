@@ -119,12 +119,11 @@ export default function SaleHistoryPage() {
           alignItems: "center",
         }}
       >
-        {/* 🔍 Search */}
         <Grid size={{ xs: 12, md: 7 }}>
           <TextField
             variant="outlined"
             size="small"
-            placeholder="Search by customer, phone, or invoice..."
+            placeholder="Search..."
             value={filters.search}
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, search: e.target.value }))
@@ -142,7 +141,6 @@ export default function SaleHistoryPage() {
           />
         </Grid>
 
-        {/* 🔽 Filters */}
         <Grid
           size={{ xs: 12, md: 5 }}
           sx={{
@@ -152,7 +150,6 @@ export default function SaleHistoryPage() {
             flexWrap: "wrap",
           }}
         >
-          {/* 🧾 Sale Type */}
           <TextField
             select
             size="small"
@@ -161,15 +158,12 @@ export default function SaleHistoryPage() {
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, saleType: e.target.value }))
             }
-            label="Type"
           >
             <MenuItem value="all">All Types</MenuItem>
             <MenuItem value="inventory">Inventory</MenuItem>
             <MenuItem value="service">Service</MenuItem>
             <MenuItem value="custom">Custom</MenuItem>
           </TextField>
-
-          {/* 💳 Payment Status */}
           <TextField
             select
             size="small"
@@ -178,7 +172,6 @@ export default function SaleHistoryPage() {
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, status: e.target.value }))
             }
-            label="Payment"
           >
             <MenuItem value="all">All Payments</MenuItem>
             <MenuItem value="paid">Paid</MenuItem>
@@ -188,7 +181,6 @@ export default function SaleHistoryPage() {
         </Grid>
       </Grid>
 
-      {/* 🧾 Table */}
       <Grid container>
         <Grid size={{ xs: 12 }}>
           <SaleHistoryTable
@@ -200,13 +192,10 @@ export default function SaleHistoryPage() {
         </Grid>
       </Grid>
 
-      {/* 🧾 Receipt Dialog */}
       <SaleReceiptDialog
         sale={selectedSale}
         onClose={() => setSelectedSale(null)}
       />
-
-      {/* ✅ Snackbar */}
       <Snackbar
         open={snack.open}
         onClose={() => setSnack({ ...snack, open: false })}

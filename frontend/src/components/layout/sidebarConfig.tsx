@@ -21,8 +21,8 @@ export const menuItems = [
     subItems: [
       { label: "Item", path: "/sale/item" },
       { label: "Service", path: "/sale/service" },
-      { label: "Grill", path: "/sale/grill" },
       { label: "Custom", path: "/sale/custom" },
+      { label: "Sale History", path: "/sale/history" },
     ],
   },
   {

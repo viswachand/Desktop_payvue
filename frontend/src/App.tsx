@@ -57,6 +57,7 @@ function App({ toggleTheme, currentMode }: AppProps) {
             <Route path="/sale/service" element={<Service />} />
             <Route path="/sale/custom" element={<Custom />} />
             <Route path="/sale/history" element={<History />} />
+            
             <Route path="/sale/item/payment" element={<PaymentScreen />} />
             
 

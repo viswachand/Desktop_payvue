@@ -17,8 +17,8 @@ import {
   selectSaleLoading,
 } from "@/features/sales/saleSlice";
 import type { AppDispatch } from "@/app/store";
-import SaleHistoryTable from "./components/SaleHistoryTable";
-import SaleReceiptDialog from "./components/SaleReceiptDialog";
+import SaleHistoryTable from "../components/SaleHistoryTable";
+import SaleReceiptDialog from "../components/SaleReceiptDialog";
 
 export default function SaleHistoryPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -33,10 +33,9 @@ export default function SaleHistoryPage() {
     severity: "success" as "success" | "error",
   });
 
-  // ✅ Default filters
   const [filters, setFilters] = useState({
-    saleType: "all", // All Types, inventory, service, custom
-    status: "all", // All Payments, paid, pending, refunded
+    saleType: "all", 
+    status: "all",
     search: "",
   });
 

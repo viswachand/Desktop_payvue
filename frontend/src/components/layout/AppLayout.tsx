@@ -11,17 +11,26 @@ interface AppLayoutProps {
 
 export default function AppLayout({ toggleTheme, currentMode }: AppLayoutProps) {
   const location = useLocation();
-  const isSaleRoute = location.pathname.startsWith("/sale");
+
+  // Detect major route groups
+  const isSaleRoute =
+    location.pathname.startsWith("/sale/item") ||
+    location.pathname.startsWith("/sale/service") ||
+    location.pathname.startsWith("/sale/custom") ||
+    location.pathname.startsWith("/sale/history");
+
+  const isLayawayRoute = location.pathname.startsWith("/sale/layaway");
 
   return (
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      {/* ✅ No props now */}
+      {/* Main sidebar */}
       <AppSidebar />
 
-      {/* Show secondary sidebar only for sale routes */}
-      {isSaleRoute && <SubSidebar />}
+      {/* Secondary sidebar */}
+      {isSaleRoute && <SubSidebar type="sale" />}
+      {isLayawayRoute && <SubSidebar type="layaway" />}
 
-      {/* Main content area */}
+      {/* Main content */}
       <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
         <AppHeader toggleTheme={toggleTheme} currentMode={currentMode} />
         <Box

@@ -1,6 +1,8 @@
 import { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { CircularProgress, Box } from "@mui/material";
+import { layawayRoutes } from "@/modules/layaway";
+import { saleRoutes } from "@/modules/sales";
 
 // Route guards
 import PrivateRoute from "@/routes/PrivateRoute";
@@ -19,54 +21,73 @@ interface AppProps {
 // Lazy-loaded pages
 const Login = lazy(() => import("@/page/Login"));
 const Dashboard = lazy(() => import("@/page/Dashboard"));
+const SuccessScreen = lazy(() => import("@/page/PaymentSuccessPage"));
 
 
-//Sale Routes
-const Sales = lazy(() => import("@/modules/sales/ItemSale"));
-const Service = lazy(() => import("@/modules/sales/serviceSale"));
-const Custom = lazy(() => import("@/modules/sales/customSale"));
-const History = lazy(() => import("@/modules/sales/SaleHistoryPage"));
-
-//AdminConfig
+// Admin & Others
 const AdminScreen = lazy(() => import("@/page/Admin"));
-const PolicesScreen = lazy(() => import("@/page/PoliciesPage"));
-
-const SuccessScreen = lazy(() => import("@/page/PaymentSuccessPage"))
-
-const PaymentScreen = lazy(() => import("@/modules/sales/PaymentScreen"));
+const PoliciesScreen = lazy(() => import("@/page/PoliciesPage"));
 const PageNotFound = lazy(() => import("@/page/PageNotFound"));
 const Unauthorized = lazy(() => import("@/page/Unauthorized"));
 
 function App({ toggleTheme, currentMode }: AppProps) {
   return (
-    <Suspense>
+    <Suspense
+      fallback={
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="100vh"
+        >
+          <CircularProgress />
+        </Box>
+      }
+    >
       <Routes>
+        {/* Public routes */}
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Route>
 
+        {/* Private routes */}
         <Route element={<PrivateRoute />}>
           <Route
             element={
               <AppLayout toggleTheme={toggleTheme} currentMode={currentMode} />
             }
           >
+            {/* Dashboard */}
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/sale/item" element={<Sales />} />
-            <Route path="/sale/service" element={<Service />} />
-            <Route path="/sale/custom" element={<Custom />} />
-            <Route path="/sale/history" element={<History />} />
-            
-            <Route path="/sale/item/payment" element={<PaymentScreen />} />
-            
 
+            {/* Sale routes */}
+
+            {saleRoutes.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={route.element}
+              />
+            ))}
+            {layawayRoutes.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={route.element}
+              />
+            ))}
+
+            {/* Payment Success */}
             <Route path="/success" element={<SuccessScreen />} />
+
+            {/* Admin */}
             <Route path="/admin" element={<AdminScreen />} />
-            <Route path="/policies" element={<PolicesScreen />} />
+            <Route path="/policies" element={<PoliciesScreen />} />
           </Route>
         </Route>
 
+        {/* Errors / Redirects */}
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>

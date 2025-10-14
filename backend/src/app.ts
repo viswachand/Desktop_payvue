@@ -8,6 +8,7 @@ import itemRoutes from "./routes/itemRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import saleRoutes from "./routes/saleRoutes";
 import { errorHandler } from "./middleware/error-handler";
+import layawayRoutes from "./routes/layawayRoutes"
 
 const app = express();
 
@@ -49,6 +50,7 @@ app.use("/api/policies", policyRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/sale", saleRoutes);
+app.use("/api/layaway",layawayRoutes);
 
 // ----------------------------------
 // ✅ Error Handler (global)

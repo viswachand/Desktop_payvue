@@ -12,7 +12,7 @@ import {
 import { MenuItem } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import SaleLayout from "./layout/SaleLayout";
+import SaleLayout from "../layout/SaleLayout";
 import type { AppDispatch } from "@/app/store";
 import { addToCart } from "@/features/cart/cartSlice";
 

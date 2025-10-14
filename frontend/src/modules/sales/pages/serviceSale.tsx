@@ -10,7 +10,7 @@ import {
   TextField,
 } from "@/components/common";
 
-import SaleLayout from "./layout/SaleLayout";
+import SaleLayout from "../layout/SaleLayout";
 import type { AppDispatch } from "@/app/store";
 import { addToCart } from "@/features/cart/cartSlice";
 

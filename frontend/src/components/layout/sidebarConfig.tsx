@@ -8,6 +8,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import PolicyIcon from "@mui/icons-material/Policy";
 import SettingsIcon from "@mui/icons-material/Settings";
+import PaymentsIcon from "@mui/icons-material/Payments";
 
 export const menuItems = [
   {
@@ -26,7 +27,14 @@ export const menuItems = [
     ],
   },
   {
-    label: "GoldBuy",
+    label: "Layaway",
+    icon: <PaymentsIcon />,
+    subItems: [
+      { label: "Layaway List", path: "/sale/layaway" },
+    ],
+  },
+  {
+    label: "Gold Buy",
     icon: <CurrencyExchangeIcon />,
     path: "/goldbuy",
   },
@@ -50,5 +58,9 @@ export const menuItems = [
     icon: <PolicyIcon />,
     path: "/policies",
   },
-  { label: "Admin Config", icon: <SettingsIcon />, path: "/admin" },
+  {
+    label: "Admin Config",
+    icon: <SettingsIcon />,
+    path: "/admin",
+  },
 ];

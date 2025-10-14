@@ -31,7 +31,7 @@ import {
   updateQuantity,
   selectCartItems,
 } from "@/features/cart/cartSlice";
-import SaleLayout from "./layout/SaleLayout";
+import SaleLayout from "../layout/SaleLayout";
 import type { Item } from "@payvue/shared/types/item";
 
 type SnackSeverity = "success" | "error" | "info" | "warning";

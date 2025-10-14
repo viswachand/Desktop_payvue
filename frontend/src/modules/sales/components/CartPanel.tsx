@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { Box, Typography, Button, Snackbar } from "@/components/common";
 import { IconButton, Stack, useTheme } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import AddCustomerDialog from "./components/AddCustomerDialog";
-import CartSummary from "./components/CartSummary";
+import AddCustomerDialog from "./AddCustomerDialog";
+import CartSummary from "./CartSummary";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 

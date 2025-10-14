@@ -9,11 +9,11 @@ import {
   useTheme,
 } from "@/components/common";
 
-import SalePaymentLayout from "./layout/SalePaymentLayout";
-import AmountSummary from "./components/AmountSummary";
-import PaymentMethods from "./components/PaymentMethods";
-import CustomerCard from "./components/CustomerCard";
-import PaymentFooter from "./components/PaymentFooter";
+import SalePaymentLayout from "../layout/SalePaymentLayout";
+import AmountSummary from "../components/AmountSummary";
+import PaymentMethods from "../components/PaymentMethods";
+import CustomerCard from "../components/CustomerCard";
+import PaymentFooter from "../components/PaymentFooter";
 
 import {
   selectCartItems,

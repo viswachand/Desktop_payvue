@@ -1,6 +1,6 @@
 import { useTheme } from "@mui/material";
 import { Box } from "@/components/common";
-import CartPanel from "../CartPanel";
+import CartPanel from "../components/CartPanel";
 import { APPBAR_HEIGHT, CART_WIDTH } from "@/utils/constants";
 
 interface SaleLayoutProps {

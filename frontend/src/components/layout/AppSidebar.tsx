@@ -1,4 +1,11 @@
-import { useTheme, Drawer, Box, IconButton, Typography, Tooltip } from "@mui/material";
+import {
+  useTheme,
+  Drawer,
+  Box,
+  IconButton,
+  Typography,
+  Tooltip,
+} from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { menuItems } from "./sidebarConfig";
 import { APPBAR_HEIGHT, SIDEBAR_WIDTH } from "@/utils/constants";
@@ -10,7 +17,6 @@ export default function AppSidebar() {
 
   const handleMenuClick = (item: any) => {
     if (item.subItems && item.subItems.length > 0) {
-      // 🧭 Navigate to the first sub-route for "Sale"
       navigate(item.subItems[0].path);
     } else if (item.path) {
       navigate(item.path);
@@ -47,18 +53,13 @@ export default function AppSidebar() {
         }}
       >
         {menuItems.map((item) => {
-          // ✅ Strict active detection
           const isActive = (() => {
             if (item.subItems && item.subItems.length > 0) {
-              // Active if any of its subroutes match the current path
               return item.subItems.some((sub: any) =>
                 location.pathname.startsWith(sub.path)
               );
             }
-            if (item.path) {
-              // Active only if exact main path matches
-              return location.pathname === item.path;
-            }
+            if (item.path) return location.pathname === item.path;
             return false;
           })();
 

@@ -1,19 +1,33 @@
 import { Drawer, Box, Typography, useTheme } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
-import { APPBAR_HEIGHT, SIDEBAR_WIDTH, SUB_SIDEBAR_WIDTH } from "@/utils/constants";
+import {
+  APPBAR_HEIGHT,
+  SIDEBAR_WIDTH,
+  SUB_SIDEBAR_WIDTH,
+} from "@/utils/constants";
 
+interface SubSidebarProps {
+  type: "sale" | "layaway";
+}
 
-const subMenuItems = [
+const saleMenu = [
   { label: "Item", path: "/sale/item" },
   { label: "Service", path: "/sale/service" },
   { label: "Custom", path: "/sale/custom" },
   { label: "Sale History", path: "/sale/history" },
 ];
 
-export default function SubSidebar() {
+const layawayMenu = [
+  { label: "Layaway List", path: "/sale/layaway" },
+   { label: "Historical Layaway", path: "/sale/historicalayaway" },
+];
+
+export default function SubSidebar({ type }: SubSidebarProps) {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const items = type === "sale" ? saleMenu : layawayMenu;
 
   return (
     <Drawer
@@ -35,14 +49,12 @@ export default function SubSidebar() {
           display: "flex",
           flexDirection: "column",
           py: 3,
-          borderRadius: 0,
         },
       }}
     >
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-        {subMenuItems.map((item) => {
+        {items.map((item) => {
           const isActive = location.pathname === item.path;
-
           return (
             <Box
               key={item.label}
@@ -57,9 +69,7 @@ export default function SubSidebar() {
                 backgroundColor: isActive
                   ? theme.palette.action.selected
                   : "transparent",
-                "&:hover": {
-                  backgroundColor: theme.palette.action.hover,
-                },
+                "&:hover": { backgroundColor: theme.palette.action.hover },
               }}
             >
               <Typography

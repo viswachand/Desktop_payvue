@@ -1,15 +1,15 @@
+import React from "react";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Button,
-  Typography,
   Divider,
   Box,
-  useTheme,
 } from "@mui/material";
 import type { Sale } from "@payvue/shared/types/sale";
+import InventoryReceipt from "@/modules/receipts/InventoryReceipt";
 
 interface Props {
   sale: Sale | null;
@@ -17,158 +17,90 @@ interface Props {
 }
 
 export default function SaleReceiptDialog({ sale, onClose }: Props) {
-  const theme = useTheme();
-
   if (!sale) return null;
 
-  // Safe derived values with fallbacks
-  const subtotal = sale.subtotal ?? 0;
-  const tax = sale.tax ?? 0;
-  const total = sale.total ?? 0;
-  const createdAt = sale.createdAt ? new Date(sale.createdAt) : null;
-
   return (
-    <Dialog open={!!sale} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700 }}>
-        Invoice #{sale.invoiceNumber ?? "N/A"}
+    <Dialog
+      open={!!sale}
+      onClose={onClose}
+      maxWidth="xs"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 1.5,
+          p: 1,
+          backgroundColor: "white",
+        },
+      }}
+    >
+      {/* Header */}
+      <DialogTitle
+        sx={{
+          fontWeight: 700,
+          textAlign: "center",
+          pb: 1,
+        }}
+      >
+        Sales Receipt
       </DialogTitle>
+
       <Divider />
 
-      <DialogContent dividers>
-        {/* 🧾 Customer Info */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-            Customer
-          </Typography>
-          <Typography variant="body2">
-            {sale.customerInformation?.firstName || "N/A"}{" "}
-            {sale.customerInformation?.lastName || ""}
-          </Typography>
-          {sale.customerInformation?.phone && (
-            <Typography variant="body2" color="text.secondary">
-              {sale.customerInformation.phone}
-            </Typography>
-          )}
-          {sale.customerInformation?.email && (
-            <Typography variant="body2" color="text.secondary">
-              {sale.customerInformation.email}
-            </Typography>
-          )}
+      {/* Content */}
+      <DialogContent dividers sx={{ backgroundColor: "white" }}>
+        <Box id="printable-receipt">
+          {/* 🧾 Render full receipt layout */}
+          <InventoryReceipt data={sale} />
         </Box>
-
-        {/* 📦 Sale Info */}
-        <Typography variant="body2" gutterBottom>
-          <strong>Sale Type:</strong> {(sale.saleType ?? "").toUpperCase()}
-        </Typography>
-        <Typography variant="body2" gutterBottom>
-          <strong>Status:</strong> {sale.status ?? "N/A"}
-        </Typography>
-        <Typography variant="body2" gutterBottom>
-          <strong>Date:</strong>{" "}
-          {createdAt
-            ? createdAt.toLocaleString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : "N/A"}
-        </Typography>
-
-        <Divider sx={{ my: 2 }} />
-
-        {/* 🧩 Items */}
-        <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-          Items
-        </Typography>
-        {Array.isArray(sale.items) && sale.items.length > 0 ? (
-          sale.items.map((i, idx) => (
-            <Box
-              key={idx}
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                mb: 0.5,
-              }}
-            >
-              <Typography variant="body2">
-                {i.name ?? "Unnamed"} × {i.quantity ?? 1}
-              </Typography>
-              <Typography variant="body2">
-                ${i.costPrice?.toFixed(2) ?? "0.00"}
-              </Typography>
-            </Box>
-          ))
-        ) : (
-          <Typography variant="body2" color="text.secondary">
-            No items available
-          </Typography>
-        )}
-
-        <Divider sx={{ my: 2 }} />
-
-        {/* 💰 Totals */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.3 }}>
-          <Typography variant="body2">
-            Subtotal: <strong>${subtotal.toFixed(2)}</strong>
-          </Typography>
-          <Typography variant="body2">
-            Tax: <strong>${tax.toFixed(2)}</strong>
-          </Typography>
-          {sale.discountTotal && sale.discountTotal > 0 && (
-            <Typography variant="body2" color="text.secondary">
-              Discount: -${sale.discountTotal.toFixed(2)}
-            </Typography>
-          )}
-          <Typography
-            variant="h6"
-            fontWeight={700}
-            align="right"
-            sx={{ mt: 1, color: theme.palette.primary.main }}
-          >
-            Total: ${total.toFixed(2)}
-          </Typography>
-        </Box>
-
-        <Divider sx={{ my: 2 }} />
-
-        {/* 🏷️ Policy */}
-        {sale.policyTitle && (
-          <Box sx={{ mt: 1 }}>
-            <Typography variant="subtitle2" fontWeight={600}>
-              Policy: {sale.policyTitle}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {sale.policyDescription || "No description provided"}
-            </Typography>
-          </Box>
-        )}
       </DialogContent>
 
-      <DialogActions>
+      <Divider />
+
+      {/* Footer buttons */}
+      <DialogActions
+        sx={{
+          justifyContent: "space-between",
+          px: 2,
+          py: 1.5,
+        }}
+      >
         <Button onClick={onClose} sx={{ textTransform: "none" }}>
           Close
         </Button>
+
         <Button
-          onClick={() => window.print()}
           variant="contained"
           color="primary"
+          onClick={() => window.print()}
           sx={{ textTransform: "none", fontWeight: 600 }}
         >
           Print
         </Button>
       </DialogActions>
 
-      {/* 🖨️ Hide chrome when printing */}
+      {/* 🖨 Print-specific styling */}
       <style>
         {`
           @media print {
+            body {
+              -webkit-print-color-adjust: exact;
+              color-adjust: exact;
+              background: white !important;
+            }
+
+            /* Hide dialog chrome when printing */
+            .MuiDialog-container,
             .MuiDialog-paper {
               box-shadow: none !important;
               border: none !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 80mm !important;
+              max-width: none !important;
             }
-            button {
+
+            /* Hide buttons during print */
+            button, .MuiDialogActions-root {
               display: none !important;
             }
           }

@@ -8,6 +8,7 @@ import policyReducer from "@/features/policy/policySlice";
 import saleReducer from "@/features/sales/saleSlice";
 import adminReducer from "@/features/admin/adminSlice"
 import layawayReducer from "@/features/layaway/layawaySlice";
+import categoriesReducer from "@/features/category/category"
 
 export const store = configureStore({
     reducer: {
@@ -19,7 +20,8 @@ export const store = configureStore({
         policy: policyReducer,
         sale: saleReducer,
         admin:adminReducer,
-        layaway:layawayReducer
+        layaway:layawayReducer,
+        categories:categoriesReducer
     },
 });
 

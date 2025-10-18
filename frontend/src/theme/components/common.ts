@@ -1,8 +1,7 @@
 import type { Theme } from "@mui/material/styles";
-import { border, CSSObject } from "@mui/system";
+import { border, CSSObject, textAlign } from "@mui/system";
 
 export const createCommonComponents = (theme: Theme) => ({
-
   MuiButton: {
     styleOverrides: {
       root: {
@@ -26,7 +25,6 @@ export const createCommonComponents = (theme: Theme) => ({
     },
   },
 
-
   MuiAppBar: {
     styleOverrides: {
       root: {
@@ -37,7 +35,6 @@ export const createCommonComponents = (theme: Theme) => ({
     },
   },
 
-
   MuiDrawer: {
     styleOverrides: {
       root: {
@@ -47,7 +44,6 @@ export const createCommonComponents = (theme: Theme) => ({
       },
     },
   },
-
 
   MuiCard: {
     styleOverrides: {
@@ -62,7 +58,6 @@ export const createCommonComponents = (theme: Theme) => ({
   MuiTextField: {
     styleOverrides: {
       root: {
-
         gap: theme.spacing(1),
 
         "& textarea": {
@@ -70,10 +65,11 @@ export const createCommonComponents = (theme: Theme) => ({
           resize: "none !important",
         },
 
-        "& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button": {
-          WebkitAppearance: "none",
-          margin: 0,
-        },
+        "& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button":
+          {
+            WebkitAppearance: "none",
+            margin: 0,
+          },
         "& input[type=number]": {
           MozAppearance: "textfield",
         },
@@ -122,7 +118,6 @@ export const createCommonComponents = (theme: Theme) => ({
     },
   },
 
-
   MuiFormHelperText: {
     styleOverrides: {
       root: {
@@ -143,32 +138,58 @@ export const createCommonComponents = (theme: Theme) => ({
     },
   },
 
-
   MuiDataGrid: {
+    defaultProps: {
+      disableColumnResize: true,
+    },
     styleOverrides: {
       root: {
-        borderRadius:0,
-        border: `1px solid ${theme.palette.mode === "light"
+        borderRadius: 0,
+        border: `1px solid ${
+          theme.palette.mode === "light"
             ? theme.palette.divider
             : theme.palette.background.default
-          }`,
+        }`,
         backgroundColor: theme.palette.background.paper,
-
+        "& .MuiDataGrid-row--borderBottom .MuiDataGrid-columnHeader, \
+         & .MuiDataGrid-row--borderBottom .MuiDataGrid-filler, \
+         & .MuiDataGrid-row--borderBottom .MuiDataGrid-scrollbarFiller": {
+          borderBottom: "0 !important",
+          borderTop: "0 !important",
+          backgroundColor:
+            theme.palette.mode === "light"
+              ? theme.palette.grey[100]
+              : theme.palette.background.default,
+        },
+        "& .MuiDataGrid-columnSeparator": {
+          display: "none !important",
+        },
+        "& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within, \
+         & .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within": {
+          outline: "none !important",
+          boxShadow: "none !important",
+        },
+        "& .MuiDataGrid-columnHeaders": {
+          backgroundColor:
+            theme.palette.mode === "light"
+              ? theme.palette.grey[100]
+              : theme.palette.background.default,
+          borderRadius: theme.shape.borderRadius,
+        },
       },
-
       columnHeaderTitle: {
         fontWeight: 700,
         fontSize: "0.75rem",
         color: theme.palette.text.primary,
         textTransform: "uppercase",
         letterSpacing: "0.06rem",
-        textAlign: "center",
+        textAlign: "left",
+      justifyContent: "flex-start",
       },
-
       columnHeaders: {
         verticalAlign: "center",
-        textAlign: "center",
-        padding: "12px 24px",
+        textAlign: "start",
+        padding: "12px 5px",
         backgroundColor:
           theme.palette.mode === "light"
             ? theme.palette.grey[100]
@@ -178,14 +199,12 @@ export const createCommonComponents = (theme: Theme) => ({
         textTransform: "uppercase",
         letterSpacing: "0.05rem",
       },
-
       cell: {
         display: "flex",
         alignItems: "center",
         fontSize: "0.9rem",
         color: theme.palette.text.primary,
       },
-
       row: {
         "&:hover": {
           backgroundColor:
@@ -193,13 +212,12 @@ export const createCommonComponents = (theme: Theme) => ({
               ? theme.palette.grey[50]
               : theme.palette.action.hover,
         },
-        borderBottom: `0.8px solid ${theme.palette.mode === "light"
+        borderBottom: `0.8px solid ${
+          theme.palette.mode === "light"
             ? theme.palette.divider
             : theme.palette.background.default
-          }`,
-          
+        }`,
       },
-
       footerContainer: {
         borderTop: "none",
         backgroundColor:

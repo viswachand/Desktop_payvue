@@ -34,7 +34,7 @@ export default function SaleHistoryPage() {
   });
 
   const [filters, setFilters] = useState({
-    saleType: "all", 
+    saleType: "all",
     status: "all",
     search: "",
   });
@@ -62,9 +62,7 @@ export default function SaleHistoryPage() {
         sale.customerInformation?.firstName
           ?.toLowerCase()
           .includes(searchTerm) ||
-        sale.customerInformation?.phone
-          ?.toLowerCase()
-          .includes(searchTerm);
+        sale.customerInformation?.phone?.toLowerCase().includes(searchTerm);
 
       return matchesType && matchesStatus && matchesSearch;
     });
@@ -112,7 +110,10 @@ export default function SaleHistoryPage() {
         sx={{
           p: 2,
           backgroundColor: theme.palette.background.paper,
-          border: `1px solid ${theme.palette.divider}`,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          borderLeft: `1px solid ${theme.palette.divider}`,
+          borderRight: `1px solid ${theme.palette.divider}`,
+          borderBottom: "none",
           borderTopLeftRadius: theme.shape.borderRadius,
           borderTopRightRadius: theme.shape.borderRadius,
           alignItems: "center",

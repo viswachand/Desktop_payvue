@@ -1,16 +1,27 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
+  Chip,
+  LinearProgress,
+  CircularProgress,
+  Grid,
+} from "@mui/material";
+import {
   Box,
   Typography,
-  Grid,
   Divider,
   Button,
   useTheme,
-  Paper,
+  Card,
 } from "@/components/common";
-import { CircularProgress, LinearProgress, Chip } from "@mui/material";
-import { ArrowBack, PrintRounded, AddCircleRounded } from "@mui/icons-material";
+import {
+  ArrowBack,
+  PrintRounded,
+  AddCircleRounded,
+  Person,
+  ReceiptLongRounded,
+  AccountBalanceWallet,
+} from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch } from "@/app/store";
 import {
@@ -27,7 +38,6 @@ export default function LayawayDetailsPage() {
   const navigate = useNavigate();
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
-
   const layaway = useSelector(selectCurrentLayaway) as Sale | null;
   const loading = useSelector(selectLayawayLoading);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -59,7 +69,6 @@ export default function LayawayDetailsPage() {
     invoiceNumber,
     createdAt,
     customerInformation,
-    items = [],
     installments = [],
     total = 0,
     paidAmount = 0,
@@ -68,10 +77,10 @@ export default function LayawayDetailsPage() {
 
   const formattedDate = createdAt
     ? new Date(createdAt).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
     : "—";
 
   const progress = total > 0 ? Math.min((paidAmount / total) * 100, 100) : 0;
@@ -82,29 +91,25 @@ export default function LayawayDetailsPage() {
     balanceAmount === 0
       ? "Completed"
       : balanceAmount < total
-      ? "Active"
-      : "Pending";
+        ? "Active"
+        : "Pending";
   const statusColor =
     balanceAmount === 0
       ? "success"
       : balanceAmount < total
-      ? "warning"
-      : "info";
+        ? "warning"
+        : "info";
 
   return (
-    <Box sx={{ p: 5, backgroundColor: theme.palette.background.default }}>
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={3}
-      >
+    <Box sx={{ p: 5, background: theme.palette.background.default }}>
+      {/* Header */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
         <Box>
           <Typography variant="h5" fontWeight={700}>
-            Layaway #{invoiceNumber}
+            Layaway Details
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Created on {formattedDate}
+            Invoice #{invoiceNumber} • Created on {formattedDate}
           </Typography>
         </Box>
 
@@ -118,7 +123,7 @@ export default function LayawayDetailsPage() {
           </Button>
           <Button
             variant="contained"
-            color="success"
+            color="primary"
             startIcon={<AddCircleRounded />}
             onClick={() => setAddDialogOpen(true)}
           >
@@ -135,157 +140,127 @@ export default function LayawayDetailsPage() {
         </Box>
       </Box>
 
-      {/* Row Layout */}
-      <Grid container spacing={2} mb={3}>
-        {/* Customer Info */}
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Paper
-            elevation={1}
-            sx={{
-              p: 3,
-              borderRadius: 2,
-              background: theme.palette.background.paper,
-              height: "100%",
-            }}
-          >
-            <Typography variant="subtitle2" color="text.secondary">
-              CUSTOMER INFO
-            </Typography>
-            <Typography variant="h6" fontWeight={600}>
-              {customerInformation?.firstName ?? "—"}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {customerInformation?.phone ?? "—"}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {customerInformation?.email ?? "—"}
-            </Typography>
+      {/* Main Grid Layout */}
+      <Grid container spacing={2}>
+        <Grid size={8}>
+          <Card title="Layaway Summary" subheader="Customer and payment details" sx={{ mb: 2 }}>
+            <Grid container spacing={2}>
+              <Grid size={6}>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Person color="primary" />
+                  <Box>
+                    <Typography fontWeight={600}>
+                      {customerInformation?.firstName ?? "—"}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {customerInformation?.phone ?? "—"}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {customerInformation?.email ?? "—"}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
 
-            <Box mt={2}>
+              {/* Payment Info */}
+              <Grid size={6}>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <AccountBalanceWallet color="action" />
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Total Amount
+                    </Typography>
+                    <Typography fontWeight={600}>{formatCurrency(total)}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Paid: {formatCurrency(paidAmount)}
+                    </Typography>
+                    <Typography variant="body2" color="error">
+                      Remaining: {formatCurrency(balanceAmount)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
+
+              {/* Progress Bar */}
+              <Grid size={12}>
+                <Box mt={1}>
+                  <LinearProgress
+                    variant="determinate"
+                    value={progress}
+                    sx={{
+                      height: 8,
+                      borderRadius: 5,
+                      mb: 1,
+                      "& .MuiLinearProgress-bar": {
+                        backgroundColor:
+                          progress === 100
+                            ? theme.palette.success.main
+                            : theme.palette.primary.main,
+                      },
+                    }}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    {progress.toFixed(0)}% paid
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+          </Card>
+
+          <Card title="Payment History" subheader="All previous installments" >
+            <PaymentHistoryTable installments={installments} />
+          </Card>
+        </Grid>
+
+        <Grid size={4}>
+          <Card title="Customer Status">
+            <Box display="flex" flexDirection="column" gap={2}>
               <Chip
                 label={statusLabel}
                 color={statusColor as any}
-                size="small"
-                sx={{ fontWeight: 600 }}
+                sx={{ width: "fit-content", fontWeight: 600 }}
               />
-            </Box>
-          </Paper>
-        </Grid>
-
-        {/* Payment Summary */}
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Paper
-            elevation={1}
-            sx={{
-              p: 3,
-              borderRadius: 2,
-              background: theme.palette.background.paper,
-              height: "100%",
-            }}
-          >
-            <Typography variant="subtitle2" color="text.secondary">
-              PAYMENT SUMMARY
-            </Typography>
-            <Typography variant="body1" mt={1}>
-              Total: <strong>{formatCurrency(total)}</strong>
-            </Typography>
-            <Typography variant="body1">
-              Paid: <strong>{formatCurrency(paidAmount)}</strong>
-            </Typography>
-            <Typography variant="body1" color="error">
-              Remaining: <strong>{formatCurrency(balanceAmount)}</strong>
-            </Typography>
-
-            <Box mt={2}>
-              <LinearProgress
-                variant="determinate"
-                value={progress}
-                sx={{
-                  height: 8,
-                  borderRadius: 5,
-                  "& .MuiLinearProgress-bar": {
-                    backgroundColor:
-                      progress === 100
-                        ? theme.palette.success.main
-                        : theme.palette.primary.main,
-                  },
-                }}
-              />
-              <Typography variant="caption" color="text.secondary">
-                {progress.toFixed(0)}% paid
-              </Typography>
-            </Box>
-          </Paper>
-        </Grid>
-
-        {/* Items Table */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper
-            elevation={1}
-            sx={{
-              p: 3,
-              borderRadius: 2,
-              background: theme.palette.background.paper,
-            }}
-          >
-            <Typography variant="subtitle2" color="text.secondary">
-              ITEMS
-            </Typography>
-            <Divider sx={{ mb: 2, mt: 1 }} />
-            {items.length > 0 ? (
-              <Box sx={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr
-                      style={{
-                        backgroundColor: theme.palette.grey[100],
-                        textAlign: "left",
-                      }}
-                    >
-                      <th style={{ padding: 10 }}>Item</th>
-                      <th style={{ padding: 10 }}>Qty</th>
-                      <th style={{ padding: 10 }}>Price</th>
-                      <th style={{ padding: 10 }}>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.map((it, idx) => (
-                      <tr
-                        key={idx}
-                        style={{
-                          borderBottom: `1px solid ${theme.palette.divider}`,
-                        }}
-                      >
-                        <td style={{ padding: 10 }}>{it.name}</td>
-                        <td style={{ padding: 10 }}>{it.quantity}</td>
-                        <td style={{ padding: 10 }}>
-                          {formatCurrency(it.costPrice)}
-                        </td>
-                        <td style={{ padding: 10 }}>
-                          {formatCurrency(it.costPrice * it.quantity)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </Box>
-            ) : (
               <Typography variant="body2" color="text.secondary">
-                No items found.
+                Invoice #: {invoiceNumber}
               </Typography>
-            )}
-          </Paper>
+              <Typography variant="body2" color="text.secondary">
+                Created on {formattedDate}
+              </Typography>
+
+              <Divider sx={{ my: 2 }} />
+
+              <Typography variant="subtitle2">Actions</Typography>
+              <Button
+                fullWidth
+                variant="outlined"
+                color="primary"
+                startIcon={<AddCircleRounded />}
+                onClick={() => setAddDialogOpen(true)}
+              >
+                Add Payment
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                color="secondary"
+                startIcon={<ReceiptLongRounded />}
+              >
+                View Invoice
+              </Button>
+            </Box>
+          </Card>
         </Grid>
       </Grid>
-
-      <PaymentHistoryTable installments={installments} />
 
       <AddPaymentDialog
         open={addDialogOpen}
         onClose={() => setAddDialogOpen(false)}
         layawayId={layaway.id}
-        onSuccess={(updated) => console.log("Updated:", updated)}
         balanceAmount={balanceAmount}
+        onSuccess={(updated) => {
+          console.log("✅ Payment added successfully:", updated);
+          dispatch(fetchLayawayById(id!));
+        }}
       />
     </Box>
   );

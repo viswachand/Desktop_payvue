@@ -30,6 +30,7 @@ export default function CustomerCard() {
             ? theme.palette.background.paper
             : theme.palette.background.default,
         transition: "all 0.2s ease",
+       
       }}
     >
       <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -38,9 +39,9 @@ export default function CustomerCard() {
             sx={{
               width: 44,
               height: 44,
-              borderRadius: 1.5,
+              borderRadius: theme.shape.borderRadius,
               backgroundColor: theme.palette.primary.main,
-              color: "#fff",
+              color: theme.palette.background.paper,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -67,7 +68,6 @@ export default function CustomerCard() {
           </Box>
         </Stack>
 
-        {/* 🗑️ Delete */}
         <IconButton
           size="small"
           onClick={handleRemove}

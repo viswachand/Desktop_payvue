@@ -1,0 +1,24 @@
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  #printable-receipt, #printable-receipt * {
+    visibility: visible !important;
+  }
+
+  #printable-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    font-family: monospace;
+    font-size: 11px;
+  }
+
+  .receipt-print {
+    width: 100%;
+    margin: 0;
+    padding: 4mm;
+  }
+}

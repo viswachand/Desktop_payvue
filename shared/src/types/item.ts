@@ -5,7 +5,7 @@ export interface Item {
     itemSKU?: string;
     itemName: string;
     itemDescription?: string;
-    itemCategory?: string;
+    itemCategory?: string | { id: string; name: string };
     costPrice: number;
     unitPrice?: number;
     quantity?: number;

@@ -3,11 +3,13 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { CircularProgress, Box } from "@mui/material";
 import { layawayRoutes } from "@/modules/layaway";
 import { saleRoutes } from "@/modules/sales";
+import { InventoryRoutes } from "@/modules/inventory";
 
 // Route guards
 import PrivateRoute from "@/routes/PrivateRoute";
 import AdminRoute from "@/routes/AdminRoute";
 import PublicRoute from "@/routes/PublicRoute";
+import PaymentPage from "./page/PaymentScreen";
 
 // Layout
 import AppLayout from "@/components/layout/AppLayout";
@@ -22,7 +24,6 @@ interface AppProps {
 const Login = lazy(() => import("@/page/Login"));
 const Dashboard = lazy(() => import("@/page/Dashboard"));
 const SuccessScreen = lazy(() => import("@/page/PaymentSuccessPage"));
-
 
 // Admin & Others
 const AdminScreen = lazy(() => import("@/page/Admin"));
@@ -61,8 +62,6 @@ function App({ toggleTheme, currentMode }: AppProps) {
             {/* Dashboard */}
             <Route path="/dashboard" element={<Dashboard />} />
 
-            {/* Sale routes */}
-
             {saleRoutes.map((route) => (
               <Route
                 key={route.path}
@@ -78,7 +77,15 @@ function App({ toggleTheme, currentMode }: AppProps) {
               />
             ))}
 
+            {InventoryRoutes.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={route.element}
+              />
+            ))}
             {/* Payment Success */}
+            <Route path="/payment" element={<PaymentPage/>}/>
             <Route path="/success" element={<SuccessScreen />} />
 
             {/* Admin */}

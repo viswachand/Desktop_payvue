@@ -109,7 +109,10 @@ const filteredLayaways = useMemo(() => {
         sx={{
           p: 2,
           backgroundColor: theme.palette.background.paper,
-          border: `1px solid ${theme.palette.divider}`,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          borderLeft: `1px solid ${theme.palette.divider}`,
+          borderRight: `1px solid ${theme.palette.divider}`,
+          borderBottom: "none",
           borderTopLeftRadius: theme.shape.borderRadius,
           borderTopRightRadius: theme.shape.borderRadius,
           alignItems: "center",

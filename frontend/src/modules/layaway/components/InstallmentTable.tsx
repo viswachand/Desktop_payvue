@@ -69,10 +69,7 @@ export default function PaymentHistoryTable({ installments }: Props) {
 
   return (
     <Box>
-      <Typography variant="h6" mb={2}>
-        Payment History
-      </Typography>
-
+    
       <Box
         sx={{
           height: 400,
@@ -92,26 +89,13 @@ export default function PaymentHistoryTable({ installments }: Props) {
           getRowId={(r) => r.id}
           disableRowSelectionOnClick
           hideFooterSelectedRowCount
+          disableColumnMenu
           initialState={{
             pagination: { paginationModel: { pageSize: 5 } },
           }}
           rowHeight={100}
           pageSizeOptions={[5, 10]}
           density="compact"
-          sx={{
-            borderTop: 0,
-            "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: theme.palette.grey[100],
-              borderRadius: 0,
-            },
-            "& .MuiDataGrid-row--borderBottom .MuiDataGrid-columnHeader, \
-               & .MuiDataGrid-row--borderBottom .MuiDataGrid-filler, \
-               & .MuiDataGrid-row--borderBottom .MuiDataGrid-scrollbarFiller": {
-              borderBottom: "0 !important",
-              borderTop: "0 !important",
-              backgroundColor: theme.palette.grey[100],
-            },
-          }}
         />
       </Box>
     </Box>

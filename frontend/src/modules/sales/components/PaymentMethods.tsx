@@ -1,4 +1,4 @@
-import { useState, useMemo, ChangeEvent } from "react";
+import React, { useState, useMemo, ChangeEvent } from "react";
 import {
   Box,
   Grid,
@@ -7,7 +7,11 @@ import {
   Button,
   useTheme,
 } from "@/components/common";
+import { Snackbar } from "@/components/common";
 import type { PaymentMethod } from "@payvue/shared/types/sale";
+import { IconButton } from "@mui/material";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded"; 
+
 
 interface Installment {
   method: PaymentMethod;
@@ -20,7 +24,6 @@ interface PaymentMethodsProps {
   onInstallmentsChange?: (installments: Installment[]) => void;
 }
 
-// Display names for UI but map to backend values
 const METHODS: { label: string; value: PaymentMethod }[] = [
   { label: "Cash", value: "cash" },
   { label: "Credit", value: "credit" },
@@ -41,39 +44,66 @@ export default function PaymentMethods({
   const [amount, setAmount] = useState<string>("");
   const [installments, setInstallments] = useState<Installment[]>([]);
 
-  // 💰 Calculate totals
+  // ✅ Snackbar state
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: "success" | "error" | "info" | "warning";
+  }>({ open: false, message: "", severity: "info" });
+
   const totalPaid = useMemo(
     () => installments.reduce((sum, i) => sum + i.amount, 0),
     [installments]
   );
   const remaining = Math.max(totalAmount - totalPaid, 0);
 
-  // ➕ Add a payment method
   const handleAddPayment = () => {
     const numAmount = Number(amount);
-    if (!selectedMethod || !numAmount || numAmount <= 0) return;
-
-    // If not layaway, prevent overpaying
-    if (!isLayaway && totalPaid + numAmount > totalAmount) {
-      alert("⚠ Payment exceeds total amount.");
+    if (!selectedMethod || !numAmount || numAmount <= 0) {
+      setSnackbar({
+        open: true,
+        message: "Please select a method and enter a valid amount.",
+        severity: "warning",
+      });
       return;
     }
 
-    const updated = [...installments, { method: selectedMethod, amount: numAmount }];
+    if (!isLayaway && totalPaid + numAmount > totalAmount) {
+      setSnackbar({
+        open: true,
+        message: "Payment exceeds total amount.",
+        severity: "error",
+      });
+      return;
+    }
+
+    const updated = [
+      ...installments,
+      { method: selectedMethod, amount: numAmount },
+    ];
     setInstallments(updated);
     setAmount("");
     setSelectedMethod(null);
     onInstallmentsChange?.(updated);
+
+    setSnackbar({
+      open: true,
+      message: "Payment added successfully!",
+      severity: "success",
+    });
   };
 
-  // ❌ Remove a payment method
   const handleRemove = (method: PaymentMethod) => {
     const updated = installments.filter((i) => i.method !== method);
     setInstallments(updated);
     onInstallmentsChange?.(updated);
+    setSnackbar({
+      open: true,
+      message: "Payment removed.",
+      severity: "info",
+    });
   };
 
-  // 💬 Amount input validation
   const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (/^\d*\.?\d*$/.test(val)) setAmount(val);
@@ -93,34 +123,10 @@ export default function PaymentMethods({
         Payment Methods
       </Typography>
 
-      {/* 💰 Total to Pay */}
-      {/* <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          mb: 2,
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="body1" color="text.secondary">
-          Amount to Pay
-        </Typography>
-        <TextField
-          variant="outlined"
-          size="small"
-          value={totalAmount.toFixed(2)}
-          disabled
-          sx={{
-            width: 120,
-            "& .MuiInputBase-input": { textAlign: "right" },
-          }}
-        />
-      </Box> */}
-
-      {/* 🔘 Method Buttons */}
+      {/* 💳 Payment Buttons */}
       <Grid container spacing={1.2} mb={2}>
         {METHODS.map((m) => (
-          <Grid size={{  md: 3 }} key={m.value}>
+          <Grid size={{ md: 3 }} key={m.value}>
             <Button
               fullWidth
               variant={selectedMethod === m.value ? "contained" : "outlined"}
@@ -137,7 +143,7 @@ export default function PaymentMethods({
                     : theme.palette.background.paper,
                 color:
                   selectedMethod === m.value
-                    ? "#fff"
+                    ? theme.palette.background.paper
                     : theme.palette.text.primary,
                 "&:hover": {
                   backgroundColor:
@@ -153,18 +159,28 @@ export default function PaymentMethods({
         ))}
       </Grid>
 
-      {/* 💵 Amount + Add */}
-      <Box sx={{ display: "flex", gap: 1.5 }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          alignItems: "center",
+        }}
+      >
         <TextField
-          label="Amount"
           variant="outlined"
           size="small"
           value={amount}
           onChange={handleAmountChange}
-          placeholder="0.00"
+          placeholder="Enter Amount"
           sx={{ flex: 1 }}
-          inputProps={{ inputMode: "decimal", style: { textAlign: "right" } }}
+          slotProps={{
+            input: {
+              inputMode: "decimal",
+              style: { textAlign: "right" },
+            },
+          }}
         />
+
         <Button
           variant="contained"
           color="primary"
@@ -172,16 +188,18 @@ export default function PaymentMethods({
           disabled={!selectedMethod || !amount}
           sx={{
             fontWeight: 600,
-            borderRadius: 1.5,
+            borderRadius: theme.shape.borderRadius,
             textTransform: "none",
-            px: 3,
+            px: 2,
+            height: 40,
+            minWidth: 100,
           }}
         >
           + Add
         </Button>
       </Box>
 
-      {/* 📜 Added Payments */}
+      {/* 💵 Added Payments */}
       {installments.length > 0 && (
         <Box sx={{ mt: 2 }}>
           <Typography
@@ -208,25 +226,23 @@ export default function PaymentMethods({
               </Typography>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Typography>${i.amount.toFixed(2)}</Typography>
-                <Button
+                <IconButton
                   color="error"
                   size="small"
                   onClick={() => handleRemove(i.method)}
                   sx={{
-                    textTransform: "none",
-                    minWidth: 0,
-                    "&:hover": { backgroundColor: "transparent" },
+                    p: 0.5,
+                    "&:hover": { backgroundColor: theme.palette.action.hover },
                   }}
                 >
-                  ✕
-                </Button>
+                  <DeleteOutlineRoundedIcon fontSize="small" />
+                </IconButton>
               </Box>
             </Box>
           ))}
         </Box>
       )}
 
-      {/* 📊 Summary */}
       <Box sx={{ mt: 2 }}>
         <Typography
           variant="body2"
@@ -255,6 +271,13 @@ export default function PaymentMethods({
           <strong>${remaining.toFixed(2)}</strong>
         </Typography>
       </Box>
+
+      <Snackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
     </Box>
   );
 }

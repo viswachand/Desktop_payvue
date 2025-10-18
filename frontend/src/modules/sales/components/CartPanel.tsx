@@ -100,7 +100,7 @@ export default function CartPanel() {
       return;
     }
 
-    navigate("/sale/item/payment");
+    navigate("/payment");
   };
 
   return (
@@ -114,6 +114,7 @@ export default function CartPanel() {
         borderRadius: theme.shape.borderRadius,
         bgcolor: theme.palette.background.paper,
         border: `1px solid ${theme.palette.divider}`,
+        boxShadow: theme.customShadows.card
       }}
     >
       {!customer ? (
@@ -126,11 +127,9 @@ export default function CartPanel() {
             textTransform: "none",
             borderRadius: theme.shape.borderRadius,
             fontWeight: 500,
-            border: `1px solid ${theme.palette.divider}`,
-            color:
-              theme.palette.mode === "light"
-                ? theme.palette.grey[800]
-                : theme.palette.text.primary,
+            border: `1px solid ${theme.palette.primary}`,
+            boxShadow:theme.customShadows.popover,
+            color:theme.palette.primary.main,
             "&:hover": { borderColor: theme.palette.primary.main },
           }}
         >

@@ -9,11 +9,11 @@ import {
   useTheme,
 } from "@/components/common";
 
-import SalePaymentLayout from "../layout/SalePaymentLayout";
-import AmountSummary from "../components/AmountSummary";
-import PaymentMethods from "../components/PaymentMethods";
-import CustomerCard from "../components/CustomerCard";
-import PaymentFooter from "../components/PaymentFooter";
+import SalePaymentLayout from "../modules/sales/layout/SalePaymentLayout";
+import AmountSummary from "../modules/sales/components/AmountSummary";
+import PaymentMethods from "../modules/sales/components/PaymentMethods";
+import CustomerCard from "../modules/sales/components/CustomerCard";
+import PaymentFooter from "../modules/sales/components/PaymentFooter";
 
 import {
   selectCartItems,
@@ -71,12 +71,10 @@ export default function PaymentPage() {
     [cart, discount]
   );
 
-  // Redirect if empty cart
   useEffect(() => {
     if (!cart.length) navigate("/sale/item", { replace: true });
   }, [cart, navigate]);
 
-  // 🧾 Handle Pay
   const handlePay = async () => {
     if (!customer)
       return showSnack("Select a customer before proceeding.", "error");
@@ -110,7 +108,6 @@ export default function PaymentPage() {
         ((i.type ?? "inventory") as SaleItemType) === "custom",
     }));
 
-    // 📦 Final payload
     const salePayload = {
       saleType,
       customerInformation: customer,
@@ -140,7 +137,6 @@ export default function PaymentPage() {
     }
   };
 
-  // Derived
   const totalItems = cart.reduce((s: number, i: CartItem) => s + i.qty, 0);
   const totalPaid = installments.reduce((s, i) => s + i.amount, 0);
   const remaining = Math.max(total - totalPaid, 0);
@@ -155,14 +151,13 @@ export default function PaymentPage() {
         }
         right={
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {/* 💳 Payment Methods */}
+
             <PaymentMethods
               totalAmount={total}
               isLayaway={isLayaway}
               onInstallmentsChange={setInstallments}
             />
 
-            {/* 👤 Customer */}
             {customer ? (
               <CustomerCard />
             ) : (
@@ -171,13 +166,12 @@ export default function PaymentPage() {
               </Typography>
             )}
 
-            {/* ⚙️ Policy + Layaway */}
             <PaymentFooter
               onSelectLayaway={setIsLayaway}
               onSelectPolicy={setPolicy}
+              remainingAmount={remaining}
             />
 
-            {/* 💰 Pay Button */}
             <Box sx={{ mt: 3 }}>
               <Button
                 fullWidth
@@ -194,7 +188,7 @@ export default function PaymentPage() {
                   py: 1.5,
                   fontWeight: 700,
                   textTransform: "none",
-                  borderRadius: 1.5,
+                  borderRadius: theme.shape.borderRadius,
                   boxShadow:
                     theme.palette.mode === "light"
                       ? "0 2px 6px rgba(0,0,0,0.1)"
@@ -214,7 +208,6 @@ export default function PaymentPage() {
         }
       />
 
-      {/* ✅ Snackbar */}
       <Snackbar
         open={snackOpen}
         onClose={() => setSnackOpen(false)}

@@ -21,7 +21,7 @@
       "@payvue/shared/*": ["../shared/src/*"]
     }
   },
-  "include": ["src", "src/declarations.d.ts"],
+  "include": ["src", "src/declarations.d.ts", "types"],
   "references": [
     { "path": "../shared" }
   ]

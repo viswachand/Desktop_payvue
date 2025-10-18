@@ -24,11 +24,14 @@ import { Policy } from "@payvue/shared/types/policy";
 interface PaymentFooterProps {
   onSelectLayaway: (isLayaway: boolean) => void;
   onSelectPolicy: (policy: { title: string; description: string }) => void;
+  /** ✅ Pass remaining balance from parent */
+  remainingAmount?: number;
 }
 
 export default function PaymentFooter({
   onSelectLayaway,
   onSelectPolicy,
+  remainingAmount = 0,
 }: PaymentFooterProps) {
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
@@ -60,16 +63,20 @@ export default function PaymentFooter({
   };
 
   const handleLayawayToggle = () => {
+    // prevent layaway if already paid
+    if (remainingAmount <= 0) return;
     const newValue = !isLayaway;
     setIsLayaway(newValue);
     onSelectLayaway(newValue);
   };
 
+  const isFullyPaid = remainingAmount <= 0;
+
   return (
     <Box sx={{ mt: 3 }}>
       <Grid container alignItems="center" spacing={2}>
         {/* 🔽 Sale Policy */}
-        <Grid size={{xs : 7}}>
+        <Grid size={{ xs: 7 }}>
           <FormControl fullWidth size="small">
             <InputLabel>Sale Policy</InputLabel>
             <Select
@@ -92,7 +99,7 @@ export default function PaymentFooter({
         </Grid>
 
         {/* 💼 Layaway Button */}
-        <Grid size={{xs : 5}}>
+        <Grid size={{ xs: 5 }}>
           <Box
             sx={{
               display: "flex",
@@ -104,12 +111,15 @@ export default function PaymentFooter({
               variant={isLayaway ? "contained" : "outlined"}
               color="primary"
               onClick={handleLayawayToggle}
+              disabled={isFullyPaid}
               sx={{
                 fontWeight: 600,
                 textTransform: "none",
                 borderRadius: 1.5,
                 px: 3,
                 py: 1,
+                opacity: isFullyPaid ? 0.6 : 1,
+                cursor: isFullyPaid ? "not-allowed" : "pointer",
               }}
             >
               Layaway
@@ -117,6 +127,17 @@ export default function PaymentFooter({
           </Box>
         </Grid>
       </Grid>
+
+      {/* Optional hint when disabled */}
+      {isFullyPaid && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ mt: 1, display: "block", textAlign: "right" }}
+        >
+          Layaway is unavailable — full amount paid.
+        </Typography>
+      )}
     </Box>
   );
 }

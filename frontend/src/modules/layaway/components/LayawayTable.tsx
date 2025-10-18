@@ -33,7 +33,12 @@ export default function LayawayTable({ layaways }: Props) {
   );
 
   const columns: GridColDef<Sale>[] = [
-    { field: "invoiceNumber", headerName: "Invoice #", flex: 1.2, minWidth: 150 },
+    {
+      field: "invoiceNumber",
+      headerName: "Invoice #",
+      flex: 1.2,
+      minWidth: 150,
+    },
     {
       field: "createdAt",
       headerName: "Created",
@@ -50,7 +55,9 @@ export default function LayawayTable({ layaways }: Props) {
       flex: 1.3,
       minWidth: 180,
       valueGetter: (value, row) =>
-        `${row.customerInformation?.firstName ?? ""} ${row.customerInformation?.lastName ?? ""}`,
+        `${row.customerInformation?.firstName ?? ""} ${
+          row.customerInformation?.lastName ?? ""
+        }`,
     },
     {
       field: "customerPhone",
@@ -71,7 +78,8 @@ export default function LayawayTable({ layaways }: Props) {
       headerName: "Remaining ($)",
       flex: 0.9,
       minWidth: 120,
-      valueGetter: (value, row) => `$${Number(row.balanceAmount ?? 0).toFixed(2)}`,
+      valueGetter: (value, row) =>
+        `$${Number(row.balanceAmount ?? 0).toFixed(2)}`,
     },
     {
       field: "status",
@@ -130,35 +138,23 @@ export default function LayawayTable({ layaways }: Props) {
 
   return (
     <Box sx={{ height: 600, width: "100%" }}>
-
       <DataGrid<Sale>
         rows={safeLayaways}
         columns={columns}
-        getRowId={(r) => r.id || r.invoiceNumber || `${r.createdAt}-${Math.random()}`}
+        getRowId={(r) =>
+          r.id || r.invoiceNumber || `${r.createdAt}-${Math.random()}`
+        }
         disableRowSelectionOnClick
+        disableColumnMenu
         initialState={{
           pagination: { paginationModel: { pageSize: 10 } },
         }}
-        pageSizeOptions={[10, 25, 50]}
-         rowHeight={100}
-        density="compact"
-        sx={{
-          borderTop: 0,
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: theme.palette.grey[100],
-            borderRadius: 0,
-          },
-          "& .MuiDataGrid-row--borderBottom .MuiDataGrid-columnHeader, \
-             & .MuiDataGrid-row--borderBottom .MuiDataGrid-filler, \
-             & .MuiDataGrid-row--borderBottom .MuiDataGrid-scrollbarFiller": {
-            borderBottom: "0 !important",
-            borderTop: "0 !important",
-            backgroundColor: theme.palette.grey[100],
-          },
-          "& .MuiDataGrid-cell": {
-            fontSize: 14,
-          },
+        onCellClick={(params, event) => {
+          event.stopPropagation();
         }}
+        pageSizeOptions={[10, 25, 50]}
+        rowHeight={100}
+        density="compact"
       />
     </Box>
   );

@@ -119,6 +119,7 @@ export default function ItemSale() {
             mb: 2.5,
             backgroundColor: theme.palette.background.paper,
             borderRadius: theme.shape.borderRadius,
+            boxShadow: theme.customShadows.popover
           }}
         />
 

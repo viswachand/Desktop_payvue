@@ -12,7 +12,7 @@ export const lightPalette: PaletteOptions = {
         contrastText: "#FFFFFF",
     },
     background: {
-        default: "rgb(250, 250, 251)",
+        default: "rgb(242 243 243);",
         paper: "#FFFFFF",
         login: "linear-gradient(135deg, #6366F1 0%, #9333EA 100%)",
         auth: "#4F46E5",

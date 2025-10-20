@@ -9,6 +9,8 @@ import adminRoutes from "./routes/adminRoutes";
 import saleRoutes from "./routes/saleRoutes";
 import { errorHandler } from "./middleware/error-handler";
 import layawayRoutes from "./routes/layawayRoutes"
+import goldBuy from "./routes/gouldBuyRoutes";
+import reportRoutes from "./routes/reportsRoutes";
 
 const app = express();
 
@@ -33,7 +35,7 @@ app.use(
             if (!origin || allowedOrigins.includes(origin)) {
                 callback(null, true);
             } else {
-                console.warn(`🚫 Blocked CORS origin: ${origin}`);
+                console.warn(`Blocked CORS origin: ${origin}`);
                 callback(new Error("Not allowed by CORS"));
             }
         },
@@ -51,6 +53,8 @@ app.use("/api/items", itemRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/sale", saleRoutes);
 app.use("/api/layaway",layawayRoutes);
+app.use("/api/goldBuy", goldBuy);
+app.use("/api/reports", reportRoutes);
 
 // ----------------------------------
 // ✅ Error Handler (global)

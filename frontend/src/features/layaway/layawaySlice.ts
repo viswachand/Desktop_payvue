@@ -27,7 +27,7 @@ const initialState: LayawayState = {
 // Async Thunks
 // ----------------------------------------------------
 
-// 📦 Get All Layaway Sales
+// Get All Layaway Sales
 export const fetchLayaways = createAsyncThunk<
   Sale[],
   void,
@@ -41,7 +41,7 @@ export const fetchLayaways = createAsyncThunk<
   }
 });
 
-// 🧾 Get Single Layaway by ID
+// Get Single Layaway by ID
 export const fetchLayawayById = createAsyncThunk<
   Sale,
   string,
@@ -55,7 +55,7 @@ export const fetchLayawayById = createAsyncThunk<
   }
 });
 
-// 💰 Add Payment to Layaway
+// Add Payment to Layaway
 export const addLayawayPayment = createAsyncThunk<
   Sale,
   { id: string; payload: any },
@@ -64,6 +64,22 @@ export const addLayawayPayment = createAsyncThunk<
   try {
     const data = await safeApiCall<Sale>(() =>
       API.post(`/api/layaway/${id}/payment`, payload)
+    );
+    return data;
+  } catch (error) {
+    return rejectWithValue(extractAxiosErrorMessage(error));
+  }
+});
+
+// Create Historical Layaway (Pre-POS Record)
+export const createHistoricalLayaway = createAsyncThunk<
+  Sale,
+  any,
+  { rejectValue: string }
+>("layaway/createHistoricalLayaway", async (payload, { rejectWithValue }) => {
+  try {
+    const data = await safeApiCall<Sale>(() =>
+      API.post("/api/layaway/historical", payload)
     );
     return data;
   } catch (error) {
@@ -141,6 +157,24 @@ const layawaySlice = createSlice({
       .addCase(addLayawayPayment.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload ?? "Failed to add layaway payment";
+      })
+
+      // 🆕 Create Historical Layaway
+      .addCase(createHistoricalLayaway.pending, (state) => {
+        state.isLoading = true;
+        state.success = false;
+      })
+      .addCase(createHistoricalLayaway.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.success = true;
+
+        // Add to top of list
+        state.layaways.unshift(action.payload);
+      })
+      .addCase(createHistoricalLayaway.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error =
+          action.payload ?? "Failed to create historical layaway";
       });
   },
 });
@@ -152,9 +186,12 @@ export const { clearLayawayError, clearLayawayState } = layawaySlice.actions;
 
 // Selectors
 export const selectLayaways = (state: RootState) => state.layaway.layaways;
-export const selectCurrentLayaway = (state: RootState) => state.layaway.currentLayaway;
-export const selectLayawayLoading = (state: RootState) => state.layaway.isLoading;
+export const selectCurrentLayaway = (state: RootState) =>
+  state.layaway.currentLayaway;
+export const selectLayawayLoading = (state: RootState) =>
+  state.layaway.isLoading;
 export const selectLayawayError = (state: RootState) => state.layaway.error;
-export const selectLayawaySuccess = (state: RootState) => state.layaway.success;
+export const selectLayawaySuccess = (state: RootState) =>
+  state.layaway.success;
 
 export default layawaySlice.reducer;

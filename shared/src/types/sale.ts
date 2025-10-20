@@ -99,6 +99,7 @@ export interface Sale {
   comment?: string;
 
   isLayaway: boolean;
+  isHistoricalLayaway?:boolean;
   installments?: Installment[];
 
   /* Refunds */
@@ -130,6 +131,7 @@ export interface SalePayload {
   /* Payment details */
   installments: Installment[];
   isLayaway: boolean;
+  isHistoricalLayaway?:boolean;
   isRefund: boolean;
 
   /* Policy details */

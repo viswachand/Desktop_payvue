@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState } from "react";
 import {
   Box,
   Grid,
@@ -6,25 +6,11 @@ import {
   Button,
   useTheme,
 } from "@/components/common";
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from "@mui/material";
-import { useSelector, useDispatch } from "react-redux";
-import type { AppDispatch } from "@/app/store";
-import {
-  selectAllPolicies,
-  fetchPolicies,
-} from "@/features/policy/policySlice";
-import type { SelectChangeEvent } from "@mui/material/Select";
-import { Policy } from "@payvue/shared/types/policy";
+import PolicySelect from "@/components/common/PolicySelect";
 
 interface PaymentFooterProps {
   onSelectLayaway: (isLayaway: boolean) => void;
   onSelectPolicy: (policy: { title: string; description: string }) => void;
-  /** ✅ Pass remaining balance from parent */
   remainingAmount?: number;
 }
 
@@ -34,68 +20,33 @@ export default function PaymentFooter({
   remainingAmount = 0,
 }: PaymentFooterProps) {
   const theme = useTheme();
-  const dispatch = useDispatch<AppDispatch>();
-  const policies = useSelector(selectAllPolicies);
-
   const [selectedPolicy, setSelectedPolicy] = useState<string>("");
   const [isLayaway, setIsLayaway] = useState<boolean>(false);
 
-  useEffect(() => {
-    dispatch(fetchPolicies());
-  }, [dispatch]);
+  const isFullyPaid = remainingAmount <= 0;
 
-  const activePolicy = useMemo(
-    () => policies.find((p: Policy) => p.title === selectedPolicy),
-    [policies, selectedPolicy]
-  );
-
-  const handlePolicyChange = (event: SelectChangeEvent<string>) => {
-    const selectedTitle = event.target.value;
-    setSelectedPolicy(selectedTitle);
-
-    const policy = policies.find((p: Policy) => p.title === selectedTitle);
-    if (policy) {
-      onSelectPolicy({
-        title: policy.title,
-        description: policy.description,
-      });
-    }
+  const handlePolicyChange = (policy: { title: string; description: string }) => {
+    setSelectedPolicy(policy.title);
+    onSelectPolicy(policy);
   };
 
   const handleLayawayToggle = () => {
-    // prevent layaway if already paid
-    if (remainingAmount <= 0) return;
+    if (remainingAmount <= 0) return; // prevent layaway if already paid
     const newValue = !isLayaway;
     setIsLayaway(newValue);
     onSelectLayaway(newValue);
   };
 
-  const isFullyPaid = remainingAmount <= 0;
-
   return (
     <Box sx={{ mt: 3 }}>
       <Grid container alignItems="center" spacing={2}>
-        {/* 🔽 Sale Policy */}
+        {/*  Sale Policy */}
         <Grid size={{ xs: 7 }}>
-          <FormControl fullWidth size="small">
-            <InputLabel>Sale Policy</InputLabel>
-            <Select
-              value={selectedPolicy}
-              label="Sale Policy"
-              onChange={handlePolicyChange}
-              disabled={!policies.length}
-              sx={{
-                borderRadius: 1.5,
-                backgroundColor: theme.palette.background.paper,
-              }}
-            >
-              {policies.map((p: Policy) => (
-                <MenuItem key={p.id} value={p.title}>
-                  {p.title}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <PolicySelect
+            value={selectedPolicy}
+            onChange={handlePolicyChange}
+            label="Sale Policy"
+          />
         </Grid>
 
         {/* 💼 Layaway Button */}

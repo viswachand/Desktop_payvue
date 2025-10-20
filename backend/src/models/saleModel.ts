@@ -100,6 +100,7 @@ const saleSchema = new mongoose.Schema<SaleDoc>(
         comment:{type:String},
 
         isLayaway: { type: Boolean, default: false },
+        isHistoricalLayaway: { type: Boolean, default: false },
         installments: [installmentSchema],
 
         isRefund: { type: Boolean, default: false },

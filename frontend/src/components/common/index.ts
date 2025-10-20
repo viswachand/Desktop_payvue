@@ -11,4 +11,4 @@ export { default as IconButton } from "./iconButton";
 export { default as useTheme } from "./useTheme"
 export { default as Stack } from "./stack";
 export { default as Card } from "./card"
-export { default as Select } from "./Select"
+export { default as Select } from "./select"

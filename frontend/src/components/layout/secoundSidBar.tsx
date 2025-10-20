@@ -19,7 +19,7 @@ const saleMenu = [
 
 const layawayMenu = [
   { label: "Layaway List", path: "/sale/layaway" },
-   { label: "Historical Layaway", path: "/sale/historicalayaway" },
+   { label: "Historical Layaway", path: "/sale/layaway/historicalayaway" },
 ];
 
 export default function SubSidebar({ type }: SubSidebarProps) {

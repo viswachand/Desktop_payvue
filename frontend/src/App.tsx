@@ -4,6 +4,7 @@ import { CircularProgress, Box } from "@mui/material";
 import { layawayRoutes } from "@/modules/layaway";
 import { saleRoutes } from "@/modules/sales";
 import { InventoryRoutes } from "@/modules/inventory";
+import { reportsRoutes } from "@/modules/reports";
 
 // Route guards
 import PrivateRoute from "@/routes/PrivateRoute";
@@ -84,8 +85,15 @@ function App({ toggleTheme, currentMode }: AppProps) {
                 element={route.element}
               />
             ))}
+            {reportsRoutes.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={route.element}
+              />
+            ))}
             {/* Payment Success */}
-            <Route path="/payment" element={<PaymentPage/>}/>
+            <Route path="/payment" element={<PaymentPage />} />
             <Route path="/success" element={<SuccessScreen />} />
 
             {/* Admin */}

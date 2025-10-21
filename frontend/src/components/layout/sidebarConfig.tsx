@@ -44,14 +44,14 @@ export const menuItems = [
     path: "/inventory",
   },
   {
-    label: "Customers",
+    label: "Employees",
     icon: <PeopleIcon />,
-    path: "/customers",
+    path: "/employees",
   },
   {
     label: "Reports",
     icon: <AssessmentIcon />,
-    path: "/reports",
+     path: "/reports/sales",
   },
   {
     label: "Policies",

@@ -112,7 +112,7 @@ export default function LayawayTable({ layaways }: Props) {
             <Tooltip title="View Details">
               <IconButton
                 color="primary"
-                onClick={() => navigate(`/sale/layaway/${row.id}`)}
+                onClick={() => navigate(`/payment/${row.id}`)}
                 size="small"
               >
                 <RemoveRedEyeRoundedIcon fontSize="small" />
@@ -153,7 +153,7 @@ export default function LayawayTable({ layaways }: Props) {
           event.stopPropagation();
         }}
         pageSizeOptions={[10, 25, 50]}
-        rowHeight={100}
+        rowHeight={70}
         density="compact"
       />
     </Box>

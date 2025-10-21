@@ -51,10 +51,10 @@ export default function PolicyTable({
         loading={loading}
         disableRowSelectionOnClick
         hideFooterSelectedRowCount
+     
         initialState={{
           pagination: { paginationModel: { pageSize: 10 } },
         }}
-        rowHeight={70}
         pageSizeOptions={[10, 25, 50]}
         density="compact"
         sx={{

@@ -9,6 +9,8 @@ import saleReducer from "@/features/sales/saleSlice";
 import adminReducer from "@/features/admin/adminSlice"
 import layawayReducer from "@/features/layaway/layawaySlice";
 import categoriesReducer from "@/features/category/category"
+import reportsReducer from "@/features/reports/reportSlice";
+import userReducer from "@/features/user/userSlice";
 
 export const store = configureStore({
     reducer: {
@@ -21,7 +23,9 @@ export const store = configureStore({
         sale: saleReducer,
         admin:adminReducer,
         layaway:layawayReducer,
-        categories:categoriesReducer
+        categories:categoriesReducer,
+        reports:reportsReducer,
+        users:userReducer,
     },
 });
 

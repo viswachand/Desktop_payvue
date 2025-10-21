@@ -143,7 +143,7 @@ export default function InventoryTable({ items }: Props) {
           pagination: { paginationModel: { pageSize: 10 } },
         }}
         pageSizeOptions={[10, 25, 50]}
-        rowHeight={100}
+        rowHeight={70}
         density="compact"
       />
 

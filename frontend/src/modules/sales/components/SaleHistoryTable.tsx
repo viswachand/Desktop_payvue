@@ -138,7 +138,7 @@ export default function SaleHistoryTable({
         initialState={{
           pagination: { paginationModel: { pageSize: 10 } },
         }}
-        rowHeight={100}
+        rowHeight={70}
         pageSizeOptions={[10, 25, 50]}
         density="compact"
         onCellClick={(params, event) => {

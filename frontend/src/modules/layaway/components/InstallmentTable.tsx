@@ -93,7 +93,7 @@ export default function PaymentHistoryTable({ installments }: Props) {
           initialState={{
             pagination: { paginationModel: { pageSize: 5 } },
           }}
-          rowHeight={100}
+          rowHeight={70}
           pageSizeOptions={[5, 10]}
           density="compact"
         />

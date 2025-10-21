@@ -44,7 +44,7 @@ app.use(
 );
 
 // ----------------------------------
-// ✅ API Routes
+// API Routes
 // ----------------------------------
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);

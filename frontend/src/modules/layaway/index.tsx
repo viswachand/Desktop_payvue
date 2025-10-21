@@ -16,7 +16,7 @@ export const layawayRoutes: RouteObject[] = [
     element: <LayawayListPage />,
   },
   {
-    path: "sale/layaway/:id",
+    path: "payment/:id",
     element: <LayawayDetailPage />,
   },
   {

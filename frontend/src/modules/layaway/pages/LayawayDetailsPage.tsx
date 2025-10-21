@@ -25,25 +25,26 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch } from "@/app/store";
 import {
-  fetchLayawayById,
-  selectCurrentLayaway,
-  selectLayawayLoading,
-} from "@/features/layaway/layawaySlice";
+  fetchSaleById,
+  selectCurrentSale,
+  selectSaleLoading,
+} from "@/features/sales/saleSlice";
 import AddPaymentDialog from "../components/AddPaymentDialog";
 import PaymentHistoryTable from "../components/InstallmentTable";
 import type { Sale } from "@payvue/shared/types/sale";
 
-export default function LayawayDetailsPage() {
+export default function PaymentDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
-  const layaway = useSelector(selectCurrentLayaway) as Sale | null;
-  const loading = useSelector(selectLayawayLoading);
+
+  const sale = useSelector(selectCurrentSale) as Sale | null;
+  const loading = useSelector(selectSaleLoading);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (id) dispatch(fetchLayawayById(id));
+    if (id) dispatch(fetchSaleById(id));
   }, [id, dispatch]);
 
   if (loading)
@@ -53,11 +54,11 @@ export default function LayawayDetailsPage() {
       </Box>
     );
 
-  if (!layaway)
+  if (!sale)
     return (
       <Box p={4}>
         <Typography variant="h6" color="text.secondary">
-          Layaway not found.
+          Payment details not found.
         </Typography>
         <Button onClick={() => navigate(-1)} startIcon={<ArrowBack />}>
           Go Back
@@ -73,14 +74,15 @@ export default function LayawayDetailsPage() {
     total = 0,
     paidAmount = 0,
     balanceAmount = 0,
-  } = layaway;
+    isLayaway,
+  } = sale;
 
   const formattedDate = createdAt
     ? new Date(createdAt).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
     : "—";
 
   const progress = total > 0 ? Math.min((paidAmount / total) * 100, 100) : 0;
@@ -91,14 +93,14 @@ export default function LayawayDetailsPage() {
     balanceAmount === 0
       ? "Completed"
       : balanceAmount < total
-        ? "Active"
-        : "Pending";
+      ? "Active"
+      : "Pending";
   const statusColor =
     balanceAmount === 0
       ? "success"
       : balanceAmount < total
-        ? "warning"
-        : "info";
+      ? "warning"
+      : "info";
 
   return (
     <Box sx={{ p: 5, background: theme.palette.background.default }}>
@@ -106,7 +108,7 @@ export default function LayawayDetailsPage() {
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
         <Box>
           <Typography variant="h5" fontWeight={700}>
-            Layaway Details
+            Payment Details
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Invoice #{invoiceNumber} • Created on {formattedDate}
@@ -121,14 +123,18 @@ export default function LayawayDetailsPage() {
           >
             Back
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddCircleRounded />}
-            onClick={() => setAddDialogOpen(true)}
-          >
-            Add Payment
-          </Button>
+
+          {isLayaway && (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddCircleRounded />}
+              onClick={() => setAddDialogOpen(true)}
+            >
+              Add Payment
+            </Button>
+          )}
+
           <Button
             variant="contained"
             color="secondary"
@@ -140,10 +146,10 @@ export default function LayawayDetailsPage() {
         </Box>
       </Box>
 
-      {/* Main Grid Layout */}
+      {/* Main Content */}
       <Grid container spacing={2}>
         <Grid size={8}>
-          <Card title="Layaway Summary" subheader="Customer and payment details" sx={{ mb: 2 }}>
+          <Card title="Payment Summary" subheader="Customer and payment details" sx={{ mb: 2 }}>
             <Grid container spacing={2}>
               <Grid size={6}>
                 <Box display="flex" alignItems="center" gap={2}>
@@ -162,7 +168,6 @@ export default function LayawayDetailsPage() {
                 </Box>
               </Grid>
 
-              {/* Payment Info */}
               <Grid size={6}>
                 <Box display="flex" alignItems="center" gap={2}>
                   <AccountBalanceWallet color="action" />
@@ -181,7 +186,6 @@ export default function LayawayDetailsPage() {
                 </Box>
               </Grid>
 
-              {/* Progress Bar */}
               <Grid size={12}>
                 <Box mt={1}>
                   <LinearProgress
@@ -207,7 +211,8 @@ export default function LayawayDetailsPage() {
             </Grid>
           </Card>
 
-          <Card title="Payment History" subheader="All previous installments" >
+          {/* Always show Payment History */}
+          <Card title="Payment History" subheader="All previous installments">
             <PaymentHistoryTable installments={installments} />
           </Card>
         </Grid>
@@ -230,15 +235,19 @@ export default function LayawayDetailsPage() {
               <Divider sx={{ my: 2 }} />
 
               <Typography variant="subtitle2">Actions</Typography>
-              <Button
-                fullWidth
-                variant="outlined"
-                color="primary"
-                startIcon={<AddCircleRounded />}
-                onClick={() => setAddDialogOpen(true)}
-              >
-                Add Payment
-              </Button>
+
+              {isLayaway && (
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<AddCircleRounded />}
+                  onClick={() => setAddDialogOpen(true)}
+                >
+                  Add Payment
+                </Button>
+              )}
+
               <Button
                 fullWidth
                 variant="outlined"
@@ -252,16 +261,15 @@ export default function LayawayDetailsPage() {
         </Grid>
       </Grid>
 
-      <AddPaymentDialog
-        open={addDialogOpen}
-        onClose={() => setAddDialogOpen(false)}
-        layawayId={layaway.id}
-        balanceAmount={balanceAmount}
-        onSuccess={(updated) => {
-          console.log("✅ Payment added successfully:", updated);
-          dispatch(fetchLayawayById(id!));
-        }}
-      />
+      {isLayaway && (
+        <AddPaymentDialog
+          open={addDialogOpen}
+          onClose={() => setAddDialogOpen(false)}
+          layawayId={sale.id}
+          balanceAmount={balanceAmount}
+          onSuccess={() => dispatch(fetchSaleById(id!))}
+        />
+      )}
     </Box>
   );
 }

@@ -5,6 +5,7 @@ import { layawayRoutes } from "@/modules/layaway";
 import { saleRoutes } from "@/modules/sales";
 import { InventoryRoutes } from "@/modules/inventory";
 import { reportsRoutes } from "@/modules/reports";
+import { userRoutes } from "@/modules/user";
 
 // Route guards
 import PrivateRoute from "@/routes/PrivateRoute";
@@ -92,17 +93,22 @@ function App({ toggleTheme, currentMode }: AppProps) {
                 element={route.element}
               />
             ))}
-            {/* Payment Success */}
+            {userRoutes.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={route.element}
+              />
+            ))}
+
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/success" element={<SuccessScreen />} />
 
-            {/* Admin */}
             <Route path="/admin" element={<AdminScreen />} />
             <Route path="/policies" element={<PoliciesScreen />} />
           </Route>
         </Route>
 
-        {/* Errors / Redirects */}
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>

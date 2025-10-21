@@ -14,21 +14,23 @@
     "dev:app": "npm run dev --workspace=app",
     "dev:n8n": "npm run dev --workspace=n8n",
     "dev": "npm run dev:backend & npm run dev:frontend",
-    "build": "npm run build --workspaces",
-    "start": "npm run start --workspace=backend & npm run preview --workspace=frontend",
+    "build": "npm run build:shared && npm run build:backend",
+    "build:shared": "cd shared && tsc -p tsconfig.json",
+    "build:backend": "cd backend && tsc -p tsconfig.json",
+    "start": "cd backend && npm start",
     "clean": "rm -rf node_modules frontend/node_modules backend/node_modules shared/node_modules app/node_modules frontend/dist backend/dist shared/dist app/dist"
   },
   "devDependencies": {
     "electron": "^30.0.0",
     "electron-builder": "^26.0.12"
   },
+  "dependencies": {
+    "qrcode.react": "^4.2.0",
+    "react-to-print": "^3.2.0"
+  },
   "main": "index.js",
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "qrcode.react": "^4.2.0",
-    "react-to-print": "^3.2.0"
-  }
+  "description": ""
 }

@@ -45,9 +45,10 @@ export default function AddCustomerDialog({
     validationSchema: Yup.object({
       firstName: Yup.string().required("First name is required"),
       phone: Yup.string()
-        .matches(/^[0-9()\- ]+$/, "Phone must contain only numbers")
+        .matches(/^[0-9()+\- ]+$/, "Phone must contain only numbers")
         .required("Phone is required"),
     }),
+
     onSubmit: (values) => {
       onSave(values);
       formik.resetForm();

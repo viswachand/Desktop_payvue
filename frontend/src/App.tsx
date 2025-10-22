@@ -29,21 +29,28 @@ export default function App({ toggleTheme, currentMode }: AppProps) {
   return (
     <Suspense
       fallback={
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="100vh"
+        >
           <CircularProgress />
         </Box>
       }
     >
       <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route element={<PublicRoute />}>
-          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
         </Route>
-
         <Route element={<PrivateRoute />}>
-          <Route element={<AppLayout toggleTheme={toggleTheme} currentMode={currentMode} />}>
+          <Route
+            element={
+              <AppLayout toggleTheme={toggleTheme} currentMode={currentMode} />
+            }
+          >
             <Route path="/dashboard" element={<Dashboard />} />
-
             {saleRoutes.map((r) => (
               <Route key={r.path} path={r.path} element={r.element} />
             ))}
@@ -53,7 +60,6 @@ export default function App({ toggleTheme, currentMode }: AppProps) {
             {InventoryRoutes.map((r) => (
               <Route key={r.path} path={r.path} element={r.element} />
             ))}
-
             <Route element={<AdminRoute />}>
               {reportsRoutes.map((r) => (
                 <Route key={r.path} path={r.path} element={r.element} />
@@ -62,15 +68,12 @@ export default function App({ toggleTheme, currentMode }: AppProps) {
                 <Route key={r.path} path={r.path} element={r.element} />
               ))}
               <Route path="/admin" element={<AdminScreen />} />
-               <Route path="/policies" element={<PoliciesScreen />} />
+              <Route path="/policies" element={<PoliciesScreen />} />
             </Route>
-
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/success" element={<SuccessScreen />} />
-           
           </Route>
         </Route>
-
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>

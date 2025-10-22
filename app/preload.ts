@@ -1,10 +1,20 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
 
 contextBridge.exposeInMainWorld("electronAPI", {
-  sendToMain: (msg: string) => ipcRenderer.send("toMain", msg),
-  onFromMain: (callback: (event: any, data: any) => void) =>
-    ipcRenderer.on("fromMain", callback),
+  sendToMain: (channel: string, data?: unknown) => {
+    ipcRenderer.send(channel, data);
+  },
 
-  // ✅ Add this method for printing receipts
-  printReceipt: (sale: any) => ipcRenderer.send("print-receipt", sale),
+  onFromMain: (callback: (event: IpcRendererEvent, data: any) => void) => {
+    ipcRenderer.on("fromMain", callback);
+  },
+
+  printReceipt: (sale: any) => {
+    ipcRenderer.send("print-receipt", sale);
+  },
+
+  // optional: receive receipt render data in print window
+  onRenderReceipt: (callback: (event: IpcRendererEvent, data: any) => void) => {
+    ipcRenderer.on("render-receipt", callback);
+  },
 });

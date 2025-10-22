@@ -29,9 +29,11 @@ import {
   selectCurrentSale,
   selectSaleLoading,
 } from "@/features/sales/saleSlice";
-import AddPaymentDialog from "../components/AddPaymentDialog";
-import PaymentHistoryTable from "../components/InstallmentTable";
+import AddPaymentDialog from "../modules/layaway/components/AddPaymentDialog";
+import PaymentHistoryTable from "../modules/layaway/components/InstallmentTable";
+import SaleReceiptDialog from "@/modules/receipts/SaleReceiptDialog";
 import type { Sale } from "@payvue/shared/types/sale";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 export default function PaymentDetailsPage() {
   const { id } = useParams();
@@ -42,6 +44,7 @@ export default function PaymentDetailsPage() {
   const sale = useSelector(selectCurrentSale) as Sale | null;
   const loading = useSelector(selectSaleLoading);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [receiptOpen, setReceiptOpen] = useState(false);
 
   useEffect(() => {
     if (id) dispatch(fetchSaleById(id));
@@ -86,8 +89,7 @@ export default function PaymentDetailsPage() {
     : "—";
 
   const progress = total > 0 ? Math.min((paidAmount / total) * 100, 100) : 0;
-  const formatCurrency = (v: number) =>
-    `$${(v ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
+
 
   const statusLabel =
     balanceAmount === 0
@@ -104,7 +106,6 @@ export default function PaymentDetailsPage() {
 
   return (
     <Box sx={{ p: 5, background: theme.palette.background.default }}>
-      {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
         <Box>
           <Typography variant="h5" fontWeight={700}>
@@ -124,7 +125,7 @@ export default function PaymentDetailsPage() {
             Back
           </Button>
 
-          {isLayaway && (
+          {isLayaway && balanceAmount > 0 && (
             <Button
               variant="contained"
               color="primary"
@@ -146,10 +147,13 @@ export default function PaymentDetailsPage() {
         </Box>
       </Box>
 
-      {/* Main Content */}
       <Grid container spacing={2}>
         <Grid size={8}>
-          <Card title="Payment Summary" subheader="Customer and payment details" sx={{ mb: 2 }}>
+          <Card
+            title="Payment Summary"
+            subheader="Customer and payment details"
+            sx={{ mb: 2 }}
+          >
             <Grid container spacing={2}>
               <Grid size={6}>
                 <Box display="flex" alignItems="center" gap={2}>
@@ -211,7 +215,6 @@ export default function PaymentDetailsPage() {
             </Grid>
           </Card>
 
-          {/* Always show Payment History */}
           <Card title="Payment History" subheader="All previous installments">
             <PaymentHistoryTable installments={installments} />
           </Card>
@@ -236,7 +239,7 @@ export default function PaymentDetailsPage() {
 
               <Typography variant="subtitle2">Actions</Typography>
 
-              {isLayaway && (
+              {isLayaway && balanceAmount > 0 && (
                 <Button
                   fullWidth
                   variant="outlined"
@@ -253,6 +256,7 @@ export default function PaymentDetailsPage() {
                 variant="outlined"
                 color="secondary"
                 startIcon={<ReceiptLongRounded />}
+                onClick={() => setReceiptOpen(true)}
               >
                 View Invoice
               </Button>
@@ -270,6 +274,11 @@ export default function PaymentDetailsPage() {
           onSuccess={() => dispatch(fetchSaleById(id!))}
         />
       )}
+
+      <SaleReceiptDialog
+        sale={receiptOpen ? sale : null}
+        onClose={() => setReceiptOpen(false)}
+      />
     </Box>
   );
 }

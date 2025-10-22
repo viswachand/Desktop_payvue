@@ -1,7 +1,9 @@
-// src/modules/receipts/ReceiptLayout.tsx
 import React from "react";
-import { Box, Typography, Divider, Stack } from "@mui/material";
+import { Box, Typography, Divider,useTheme } from "@/components/common";
+import { Stack } from "@mui/material";
 import { QRCodeCanvas } from "qrcode.react";
+import { RECEIPT_WIDTH } from "./constants";
+
 
 interface ReceiptLayoutProps {
   title: string;
@@ -26,7 +28,7 @@ const STORE = {
   website: "https://amazingwholesalejewelry.com/",
 };
 
-export default function ReceiptLayout({
+function ReceiptLayout({
   title,
   invoiceNumber,
   invoiceDate,
@@ -40,27 +42,25 @@ export default function ReceiptLayout({
   summarySection,
   footerSection,
 }: ReceiptLayoutProps) {
+  const theme = useTheme();
   return (
     <Box
       id="printable-receipt"
       sx={{
-        width: "80mm",
+        width: RECEIPT_WIDTH,
         lineHeight: 1.4,
-        fontFamily: "monospace",
-        fontSize: "11px",
-        bgcolor: "#fff",
-        border: "1px solid #ddd",
+        bgcolor: theme.palette.background.paper,
+        border: `${theme.palette.divider} 1px solid`,
         p: 1,
       }}
     >
-      {/* --- HEADER --- */}
       <Stack alignItems="center" spacing={0.3} sx={{ mb: 1.5 }}>
-        <Typography variant="subtitle1" fontWeight={700}>
+        <Typography variant="body1" fontWeight={700}>
           {STORE.name}
         </Typography>
-        <Typography>{STORE.address1}</Typography>
-        <Typography>{STORE.city}</Typography>
-        <Typography>{STORE.phone}</Typography>
+        <Typography variant="caption">{STORE.address1}</Typography>
+        <Typography variant="caption">{STORE.city}</Typography>
+        <Typography variant="caption">{STORE.phone}</Typography>
       </Stack>
 
       <Box display="flex" justifyContent="center" my={1}>
@@ -68,18 +68,12 @@ export default function ReceiptLayout({
       </Box>
 
       <Divider sx={{ borderStyle: "dashed" }} />
-      <Typography
-        variant="subtitle1"
-        fontWeight={700}
-        align="center"
-        sx={{ my: 1 }}
-      >
+      <Typography variant="subtitle1" fontWeight={700} align="center" sx={{ my: 1 }}>
         {title}
       </Typography>
       <Divider sx={{ borderStyle: "dashed" }} />
 
-      {/* --- CUSTOMER INFO --- */}
-      <Stack direction="column" justifyContent="space-between" mt={1}>
+      <Stack direction="column" mt={1}>
         <Typography variant="caption">Invoice #: {invoiceNumber || "—"}</Typography>
         <Typography variant="caption">Customer: {customerName || "—"}</Typography>
       </Stack>
@@ -89,68 +83,49 @@ export default function ReceiptLayout({
         <Typography variant="caption">Phone: {phone || "—"}</Typography>
       </Stack>
 
-      {/* --- ITEMS --- */}
       {children}
-
-      {/* --- SUMMARY --- */}
       <Box mt={1}>{summarySection}</Box>
-
-      {/* --- FOOTER (Layaway, etc.) --- */}
       {footerSection && <Box mt={1}>{footerSection}</Box>}
 
-      {/* --- TRANSACTION INFO --- */}
       {(salesType || paymentType) && (
         <Box mt={1} mb={1}>
-          {salesType && <Typography variant="caption">Sales Type: {salesType}</Typography> }
-          <br></br>
-          {paymentType && <Typography variant="caption">Payment Type: {paymentType}</Typography>}
+          {salesType && <Typography variant="caption">Sales Type: {salesType}</Typography>}
+          {paymentType && (
+            <>
+              <br />
+              <Typography variant="caption">Payment Type: {paymentType}</Typography>
+            </>
+          )}
         </Box>
       )}
 
-      {/* --- COMMENT & POLICY --- */}
       {comment && (
         <Box mb={0.5}>
-          <Typography fontWeight={600} variant="caption">Comment:</Typography>
-          <Typography variant="caption">{comment}</Typography>
+          <Typography fontWeight={600} variant="caption">
+            Comment:
+          </Typography>{" "}
+          {comment}
         </Box>
       )}
 
       {policyDescription && (
         <Box mb={0.5}>
-          <Typography variant="caption" fontWeight={600}>Policy : </Typography>
-          <Typography variant="caption" textAlign="justify">{policyDescription}</Typography>
+          <Typography variant="caption" fontWeight={600}>
+           {policyDescription}
+          </Typography>
+          
         </Box>
       )}
 
-      {/* --- THANK YOU FOOTER --- */}
       <Typography
         align="center"
-        sx={{ mt: 3, fontSize: "10px", borderTop: "1px dashed #999", pt: 0.5 }}
+        variant="caption"
+        sx={{ mt: 3,  borderTop: `1px dashed ${theme.palette.divider}`, display: "block", width: "100%", textAlign: "center", pt:1 }}
       >
         Thank you for shopping with us!
       </Typography>
-
-      {/* 🖨 Print Fallback for Electron */}
-      <style>
-        {`
-          @media print {
-            body * { visibility: hidden !important; }
-            #printable-receipt, #printable-receipt * {
-              visibility: visible !important;
-            }
-            #printable-receipt {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 80mm;
-              font-family: monospace;
-              font-size: 11px;
-              background: white;
-              padding: 4mm;
-            }
-          }
-        `}
-      </style>
     </Box>
   );
 }
+
+export default React.memo(ReceiptLayout);

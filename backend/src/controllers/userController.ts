@@ -17,7 +17,7 @@ export interface UserPayload {
 }
 
 const generateToken = (payload: UserPayload): string => {
-  return jwt.sign(payload, process.env.JWT_KEY!, { expiresIn: "3min" });
+  return jwt.sign(payload, process.env.JWT_KEY!, { expiresIn: "30min" });
 };
 
 const validateRequest = async (req: Request, chains: ValidationChain[]) => {

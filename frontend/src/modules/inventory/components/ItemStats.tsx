@@ -3,14 +3,9 @@ import { Card, Typography, Box, useTheme } from "@/components/common";
 import { CardContent } from "@mui/material";
 import { Grid } from "@/components/common";
 import type { Item } from "@payvue/shared/types/item";
+import { formatCurrency } from "@/utils/formatCurrency";
 
-// Format currency nicely
-const formatCurrency = (value: number) =>
-  value.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  });
+
 
 interface Props {
   items: Item[];

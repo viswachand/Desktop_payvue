@@ -18,15 +18,15 @@ import {
 } from "@/features/sales/saleSlice";
 import type { AppDispatch } from "@/app/store";
 import SaleHistoryTable from "../components/SaleHistoryTable";
-import SaleReceiptDialog from "../components/SaleReceiptDialog";
+import { useNavigate } from "react-router-dom";
 
 export default function SaleHistoryPage() {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const sales = useSelector(selectSales);
   const loading = useSelector(selectSaleLoading);
   const theme = useTheme();
 
-  const [selectedSale, setSelectedSale] = useState<any>(null);
   const [snack, setSnack] = useState({
     open: false,
     message: "",
@@ -39,23 +39,19 @@ export default function SaleHistoryPage() {
     search: "",
   });
 
-  // 🔄 Fetch sales on mount
   useEffect(() => {
     dispatch(fetchSales());
   }, [dispatch]);
 
-  // 🔍 Filtered sales
   const filteredSales = useMemo(() => {
+    const searchTerm = filters.search.toLowerCase();
     return sales.filter((sale) => {
       const matchesType =
         filters.saleType === "all" ||
         sale.saleType?.toLowerCase() === filters.saleType.toLowerCase();
-
       const matchesStatus =
         filters.status === "all" ||
         sale.status?.toLowerCase() === filters.status.toLowerCase();
-
-      const searchTerm = filters.search.toLowerCase();
       const matchesSearch =
         !searchTerm ||
         sale.invoiceNumber?.toLowerCase().includes(searchTerm) ||
@@ -63,7 +59,6 @@ export default function SaleHistoryPage() {
           ?.toLowerCase()
           .includes(searchTerm) ||
         sale.customerInformation?.phone?.toLowerCase().includes(searchTerm);
-
       return matchesType && matchesStatus && matchesSearch;
     });
   }, [sales, filters]);
@@ -85,6 +80,10 @@ export default function SaleHistoryPage() {
     }
   };
 
+  const handleView = (sale: any) => {
+    if (sale?.id) navigate(`/payment/${sale.id}`);
+  };
+
   if (loading)
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
@@ -93,26 +92,18 @@ export default function SaleHistoryPage() {
     );
 
   return (
-    <Box
-      sx={{
-        p: 5,
-        backgroundColor: theme.palette.background.default,
-      }}
-    >
+    <Box sx={{ p: 5, backgroundColor: theme.palette.background.default }}>
       <Typography variant="h5" fontWeight={700} gutterBottom>
         Sale History
       </Typography>
 
-      {/* 🔍 Filter Bar */}
       <Grid
         container
         spacing={2}
         sx={{
           p: 2,
           backgroundColor: theme.palette.background.paper,
-          borderTop: `1px solid ${theme.palette.divider}`,
-          borderLeft: `1px solid ${theme.palette.divider}`,
-          borderRight: `1px solid ${theme.palette.divider}`,
+          border: `1px solid ${theme.palette.divider}`,
           borderBottom: "none",
           borderTopLeftRadius: theme.shape.borderRadius,
           borderTopRightRadius: theme.shape.borderRadius,
@@ -140,7 +131,6 @@ export default function SaleHistoryPage() {
             }}
           />
         </Grid>
-
         <Grid
           size={{ xs: 12, md: 5 }}
           sx={{
@@ -185,17 +175,12 @@ export default function SaleHistoryPage() {
         <Grid size={{ xs: 12 }}>
           <SaleHistoryTable
             sales={filteredSales}
-            onView={(sale) => setSelectedSale(sale)}
-            onPrint={(sale) => window.print()}
+            onView={handleView}
             onRefund={handleRefund}
           />
         </Grid>
       </Grid>
 
-      <SaleReceiptDialog
-        sale={selectedSale}
-        onClose={() => setSelectedSale(null)}
-      />
       <Snackbar
         open={snack.open}
         onClose={() => setSnack({ ...snack, open: false })}

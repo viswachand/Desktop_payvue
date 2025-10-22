@@ -1,13 +1,11 @@
 import React from "react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  IconButton,
-  Divider,
-  Box,
+
 } from "@mui/material";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import { useTheme,  Box } from "@/components/common";
+
 import type { Sale } from "@payvue/shared/types/sale";
 import PrintableReceipt from "@/modules/receipts/PrintableReceipt"; 
 
@@ -21,6 +19,7 @@ export default function SaleReceiptDialog({
   onClose,
 }: SaleReceiptDialogProps) {
   if (!sale) return null;
+  const theme = useTheme();
 
   return (
     <Dialog
@@ -28,31 +27,17 @@ export default function SaleReceiptDialog({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: { borderRadius: 2, p: 0, overflow: "hidden" },
+       slotProps={{
+        paper: {
+          sx: { borderRadius: theme.shape.borderRadius, p: 0, overflow: "hidden" },
+        },
       }}
     >
-      <DialogTitle
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          fontWeight: 600,
-          fontSize: "1rem",
-          pb: 1,
-        }}
-      >
-        Sale Receipt
-        <IconButton size="small" onClick={onClose}>
-          <CloseRoundedIcon />
-        </IconButton>
-      </DialogTitle>
-      <Divider />
 
       <DialogContent
         sx={{
           p: 2,
-          backgroundColor: "#fafafa",
+          backgroundColor: theme.palette.background.paper,
           maxHeight: "80vh",
           overflow: "auto",
         }}

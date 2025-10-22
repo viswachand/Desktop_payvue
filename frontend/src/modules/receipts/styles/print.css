@@ -1,0 +1,34 @@
+@media print {
+  body {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    background: white !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #printable-receipt,
+  #printable-receipt * {
+    visibility: visible !important;
+  }
+
+  #printable-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    font-family: monospace;
+    font-size: 11px;
+    background: white;
+    padding: 4mm;
+  }
+
+  .MuiDialog-container,
+  .MuiDialog-paper,
+  button,
+  .MuiDialogActions-root {
+    display: none !important;
+  }
+}

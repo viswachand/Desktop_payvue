@@ -3,7 +3,7 @@ import { RouteObject } from "react-router-dom";
 
 // Lazy load existing pages
 const LayawayListPage = lazy(() => import("./pages/LayawayListPage"));
-const LayawayDetailPage = lazy(() => import("./pages/LayawayDetailsPage"));
+const LayawayDetailPage = lazy(() => import("../../page/paymentDetailsPage"));
 
 // Lazy load new historical layaway page from its module
 const AddHistoricalLayawayPage = lazy(

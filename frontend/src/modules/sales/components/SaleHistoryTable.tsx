@@ -1,26 +1,23 @@
 import * as React from "react";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { Box, Chip, IconButton, Tooltip, useTheme } from "@mui/material";
-import LocalPrintshopRoundedIcon from "@mui/icons-material/LocalPrintshopRounded";
 import RemoveRedEyeRoundedIcon from "@mui/icons-material/RemoveRedEyeRounded";
 import CurrencyExchangeRoundedIcon from "@mui/icons-material/CurrencyExchangeRounded";
 import type { Sale } from "@payvue/shared/types/sale";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/app/store";
 
 interface Props {
   sales: Sale[];
   onView: (sale: Sale) => void;
-  onPrint: (sale: Sale) => void;
   onRefund: (id: string) => void;
 }
 
-export default function SaleHistoryTable({
-  sales,
-  onView,
-  onPrint,
-  onRefund,
-}: Props) {
+export default function SaleHistoryTable({ sales, onView, onRefund }: Props) {
   const theme = useTheme();
-
+  const isAdmin = useSelector(
+    (state: RootState) => state.auth.currentUser?.isAdmin ?? false
+  );
 
   const safeSales = React.useMemo(
     () =>
@@ -46,8 +43,7 @@ export default function SaleHistoryTable({
       field: "customerInformation",
       headerName: "Customer",
       flex: 1,
-      valueGetter: (value, row) =>
-        `${row.customerInformation?.firstName ?? ""}`,
+      valueGetter: (value, row) => `${row.customerInformation?.firstName ?? ""}`,
     },
     {
       field: "customerPhone",
@@ -68,10 +64,10 @@ export default function SaleHistoryTable({
             params.row.status === "paid"
               ? "success"
               : params.row.status === "pending"
-                ? "warning"
-                : params.row.status === "refunded"
-                  ? "default"
-                  : "info"
+              ? "warning"
+              : params.row.status === "refunded"
+              ? "default"
+              : "info"
           }
           size="small"
           sx={{ fontWeight: 600 }}
@@ -81,7 +77,7 @@ export default function SaleHistoryTable({
     {
       field: "actions",
       headerName: "Actions",
-      flex: 1.5,
+      flex: 1,
       sortable: false,
       filterable: false,
       renderCell: (params: GridRenderCellParams<Sale>) => {
@@ -98,17 +94,7 @@ export default function SaleHistoryTable({
               </IconButton>
             </Tooltip>
 
-            <Tooltip title="Print Invoice">
-              <IconButton
-                color="primary"
-                onClick={() => onPrint(row)}
-                size="small"
-              >
-                <LocalPrintshopRoundedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-
-            {!row.isRefund && (
+            {isAdmin && !row.isRefund && (
               <Tooltip title="Refund Sale">
                 <IconButton
                   color="error"

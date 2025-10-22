@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Box, MenuItem, CircularProgress } from "@mui/material";
+import { useEffect, useState, useMemo, useRef } from "react";
+import { Box, CircularProgress, MenuItem } from "@mui/material";
 import {
   Grid,
   TextField,
@@ -43,17 +43,24 @@ export default function ItemFormPage() {
   const loadingCategories = useSelector(selectCategoryLoading);
 
   const [addCategoryOpen, setAddCategoryOpen] = useState(false);
-  const editItem = id ? items.find((i) => i.id === id) : null;
-  const isEditMode = Boolean(editItem);
+  const hasFetched = useRef(false);
 
-  // ✅ Fetch data
   useEffect(() => {
-    dispatch(fetchCategories());
-    if (!items.length) dispatch(fetchItems());
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      dispatch(fetchCategories());
+      dispatch(fetchItems());
+    }
   }, [dispatch]);
 
-  // ✅ Formik
+  const editItem = useMemo(
+    () => (id ? items.find((i) => i.id === id) : null),
+    [items, id]
+  );
+  const isEditMode = Boolean(editItem);
+
   const formik = useFormik<Item>({
+    enableReinitialize: true,
     initialValues: {
       itemSKU: editItem?.itemSKU ?? "",
       itemName: editItem?.itemName ?? "",
@@ -105,15 +112,11 @@ export default function ItemFormPage() {
     }),
     onSubmit: async (values) => {
       const payload = { ...values };
-      if (isEditMode && id) {
-        await dispatch(updateItem({ id, updates: payload }));
-      } else {
-        await dispatch(createItem(payload));
-      }
+      if (isEditMode && id) await dispatch(updateItem({ id, updates: payload }));
+      else await dispatch(createItem(payload));
     },
   });
 
-  // ✅ Redirect on success
   useEffect(() => {
     if (success) {
       navigate("/inventory");
@@ -122,18 +125,26 @@ export default function ItemFormPage() {
     }
   }, [success, dispatch, navigate]);
 
+  const paperBg =
+    theme.palette.mode === "light"
+      ? theme.palette.background.paper
+      : theme.palette.background.default;
+
   return (
     <Box sx={{ p: 3 }}>
       <Card
         title={isEditMode ? "Edit Item" : "Add New Item"}
         showHeaderDivider
-        contentSx={{ p: 2 }}
+        contentSx={{
+          borderRadius: theme.shape.borderRadius,
+          backgroundColor: paperBg,
+        }}
       >
-        <form onSubmit={formik.handleSubmit}>
-          <Grid spacing={3}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Card >
-                <Grid spacing={2}>
+        <form onSubmit={formik.handleSubmit} noValidate>
+          <Grid>
+            <Grid size={{ xs: 12, md: 6 }} >
+              <Card sx={{ backgroundColor: paperBg, p:0, borderRadius:0 }}>
+                <Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       name="itemSKU"
@@ -143,13 +154,8 @@ export default function ItemFormPage() {
                       value={formik.values.itemSKU}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      error={
-                        formik.touched.itemSKU &&
-                        Boolean(formik.errors.itemSKU)
-                      }
-                      helperText={
-                        formik.touched.itemSKU && formik.errors.itemSKU
-                      }
+                      error={formik.touched.itemSKU && Boolean(formik.errors.itemSKU)}
+                      helperText={formik.touched.itemSKU && formik.errors.itemSKU}
                     />
                   </Grid>
 
@@ -162,17 +168,11 @@ export default function ItemFormPage() {
                       value={formik.values.itemName}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      error={
-                        formik.touched.itemName &&
-                        Boolean(formik.errors.itemName)
-                      }
-                      helperText={
-                        formik.touched.itemName && formik.errors.itemName
-                      }
+                      error={formik.touched.itemName && Boolean(formik.errors.itemName)}
+                      helperText={formik.touched.itemName && formik.errors.itemName}
                     />
                   </Grid>
 
-                  {/* Category */}
                   <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       select
@@ -188,8 +188,7 @@ export default function ItemFormPage() {
                         Boolean(formik.errors.itemCategory)
                       }
                       helperText={
-                        formik.touched.itemCategory &&
-                        formik.errors.itemCategory
+                        formik.touched.itemCategory && formik.errors.itemCategory
                       }
                     >
                       {loadingCategories ? (
@@ -202,13 +201,13 @@ export default function ItemFormPage() {
                         ))
                       )}
                     </TextField>
-
                     <Typography
                       variant="body2"
                       color="primary"
                       sx={{
                         cursor: "pointer",
                         textDecoration: "underline",
+                        mt: 0.5,
                         width: "fit-content",
                       }}
                       onClick={() => setAddCategoryOpen(true)}
@@ -217,7 +216,6 @@ export default function ItemFormPage() {
                     </Typography>
                   </Grid>
 
-                  {/* Description */}
                   <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       name="itemDescription"
@@ -238,7 +236,6 @@ export default function ItemFormPage() {
                     />
                   </Grid>
 
-                  {/* Pricing Fields */}
                   {[
                     { name: "costPrice", label: "Cost Price ($)", type: "number" },
                     { name: "unitPrice", label: "Unit Price ($)", type: "number" },
@@ -269,9 +266,8 @@ export default function ItemFormPage() {
               </Card>
             </Grid>
 
-            {/* RIGHT COLUMN */}
             <Grid size={{ xs: 12, md: 6 }}>
-              <Card >
+              <Card sx={{ backgroundColor: paperBg, p:0, borderRadius:0 }}>
                 <Grid spacing={2}>
                   {[
                     { name: "vendor", label: "Vendor" },
@@ -310,8 +306,15 @@ export default function ItemFormPage() {
             </Grid>
           </Grid>
 
-          {/* Bottom Buttons */}
-          <Box display="flex" justifyContent="flex-end" alignItems="center" mt={4}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              mt: 2,
+              pt: 2,
+            }}
+          >
             <Button
               variant="outlined"
               color="inherit"
@@ -320,23 +323,13 @@ export default function ItemFormPage() {
             >
               Cancel
             </Button>
-
-            <Button
-              variant="contained"
-              onClick={formik.submitForm}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : (
-                "Save"
-              )}
+            <Button variant="contained" type="submit" disabled={isLoading}>
+              {isLoading ? <CircularProgress size={20} color="inherit" /> : "Save"}
             </Button>
           </Box>
         </form>
       </Card>
 
-      {/* Add Category Dialog */}
       <AddCategoryDialog
         open={addCategoryOpen}
         onClose={() => {

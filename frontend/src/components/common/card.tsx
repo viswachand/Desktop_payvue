@@ -58,11 +58,11 @@ const CustomCard: React.FC<CustomCardProps> = ({
             }
             {...headerProps}
           />
-          {showHeaderDivider && <Divider />} {/* 👈 divider here */}
+          {showHeaderDivider && <Divider />} 
         </>
       )}
 
-      <CardContent sx={{ p: 3, ...contentSx }}>{children}</CardContent>
+      <CardContent sx={{  ...contentSx }}>{children}</CardContent>
     </MuiCard>
   );
 };

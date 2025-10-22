@@ -2,16 +2,19 @@ import React from "react";
 import { TextField, TextFieldProps } from "@mui/material";
 
 /**
- * 🔹 Reusable CustomTextField
- * - Uses global theme overrides for all visuals
- * - Keeps placeholders visible (label shrink)
- * - Provides accessibility attributes
+ * 🔹 CustomTextField
+ * - Keeps labels always visible (shrink)
+ * - Forwards Formik handlers correctly
+ * - Uses slotProps instead of deprecated InputLabelProps
  */
 const CustomTextField: React.FC<TextFieldProps> = ({
   name,
   label,
   placeholder,
   slotProps,
+  value,
+  onChange,
+  onBlur,
   ...props
 }) => {
   return (
@@ -19,12 +22,15 @@ const CustomTextField: React.FC<TextFieldProps> = ({
       fullWidth
       variant="outlined"
       size="medium"
-      label={label}
       name={name}
+      label={label}
       placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      onBlur={onBlur}
       slotProps={{
         inputLabel: {
-          shrink: true, 
+          shrink: true,
           ...slotProps?.inputLabel,
         },
         input: {

@@ -1,12 +1,24 @@
 import React from "react";
-import { Box, BoxProps } from "@mui/material";
+import { Box as MuiBox, BoxProps as MuiBoxProps } from "@mui/material";
 
-const CustomBox: React.FC<BoxProps> = ({ children, sx = {}, ...props }) => {
+/**
+ * Type-safe wrapper around MUI Box.
+ * Supports using component="form" and event handlers like onSubmit.
+ */
+type CustomBoxProps<T extends React.ElementType = "div"> = MuiBoxProps<T> & {
+  component?: T;
+};
+
+const Box = <T extends React.ElementType = "div">({
+  children,
+  sx = {},
+  ...props
+}: CustomBoxProps<T>) => {
   return (
-    <Box sx={{ ...sx }} {...props}>
+    <MuiBox sx={{ ...sx }} {...props}>
       {children}
-    </Box>
+    </MuiBox>
   );
 };
 
-export default CustomBox;
+export default Box;

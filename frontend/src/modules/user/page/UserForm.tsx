@@ -1,50 +1,75 @@
-import React, { useEffect } from "react";
-import { CircularProgress, MenuItem, Select } from "@mui/material";
-import {
-
-  Box,
-  Button,
-  Typography,
-  TextField,
-  useTheme,
-} from "@/components/common";
-import { Grid } from "@mui/material";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useRef } from "react";
+import { Box, CircularProgress, MenuItem } from "@mui/material";
+import { Grid, TextField, Button, Card, useTheme } from "@/components/common";
+import { useNavigate, useParams } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useSelector } from "react-redux";
-import { useUserActions } from "../hooks/useUserActions";
-import { selectUsers, selectUserLoading } from "@/features/user/userSlice";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch } from "@/app/store";
+import {
+  fetchUsers,
+  addUser,
+  updateUser,
+  selectUsers,
+  selectUserLoading,
+} from "@/features/user/userSlice";
 import type { User } from "@payvue/shared/types/user";
+import { formatPhoneNumber } from "@/utils/formatPhoneNumber";
 
 export default function UserFormPage() {
-  const { id } = useParams();
-  const navigate = useNavigate();
   const theme = useTheme();
-  const { addUser, updateUser, fetchUsers } = useUserActions();
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const { id } = useParams<{ id?: string }>();
+
   const users = useSelector(selectUsers);
   const loading = useSelector(selectUserLoading);
 
-  const existingUser = users.find((u) => u.id === id);
-
+  /* ------------------------------------------------------------------ */
+  /* ------------------------ Prevent infinite fetch ------------------ */
+  /* ------------------------------------------------------------------ */
+  const hasFetched = useRef(false);
   useEffect(() => {
-    if (!users.length) fetchUsers();
-  }, [users.length, fetchUsers]);
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      dispatch(fetchUsers());
+    }
+  }, [dispatch]);
 
-  const formik = useFormik<Partial<User> & { confirmPassword?: string }>({
-    initialValues: {
-      firstName: existingUser?.firstName || "",
-      lastName: existingUser?.lastName || "",
-      username: existingUser?.username || "",
+  /* ------------------------------------------------------------------ */
+  /* ---------------------- Compute existing user --------------------- */
+  /* ------------------------------------------------------------------ */
+  const existingUser = useMemo(
+    () => users.find((u) => u.id === id),
+    [users, id]
+  );
+  const isEditMode = Boolean(existingUser);
+
+  /* ------------------------------------------------------------------ */
+  /* ----------------------- Stable initial values -------------------- */
+  /* ------------------------------------------------------------------ */
+  const initialValues = useMemo(
+    () => ({
+      firstName: existingUser?.firstName ?? "",
+      lastName: existingUser?.lastName ?? "",
+      username: existingUser?.username ?? "",
       password: "",
       confirmPassword: "",
-      contactNumber: existingUser?.contactNumber || "",
+      contactNumber: existingUser?.contactNumber ?? "",
       employeeStartDate: existingUser?.employeeStartDate
         ? new Date(existingUser.employeeStartDate)
         : new Date(),
-      status: existingUser?.status || "active",
-      isAdmin: existingUser?.isAdmin || false,
-    },
+      status: existingUser?.status ?? "active",
+      isAdmin: existingUser?.isAdmin ?? false,
+    }),
+    [existingUser]
+  );
+
+  /* ------------------------------------------------------------------ */
+  /* -------------------------- Formik setup -------------------------- */
+  /* ------------------------------------------------------------------ */
+  const formik = useFormik<Partial<User> & { confirmPassword?: string }>({
+    initialValues,
     enableReinitialize: true,
     validationSchema: Yup.object({
       firstName: Yup.string().required("First name required"),
@@ -64,15 +89,20 @@ export default function UserFormPage() {
     }),
     onSubmit: async (values) => {
       const { confirmPassword, ...payload } = values;
-      if (id) {
-        await updateUser(id, payload);
+
+      if (isEditMode && id) {
+        await dispatch(updateUser({ id, data: payload }));
       } else {
-        await addUser(payload);
+        await dispatch(addUser(payload));
       }
+
       navigate("/users");
     },
   });
 
+  /* ------------------------------------------------------------------ */
+  /* ---------------------------- Loading ----------------------------- */
+  /* ------------------------------------------------------------------ */
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
@@ -81,202 +111,275 @@ export default function UserFormPage() {
     );
   }
 
+  /* ------------------------------------------------------------------ */
+  /* ------------------------------ UI -------------------------------- */
+  /* ------------------------------------------------------------------ */
   return (
     <Box sx={{ p: 3 }}>
-      {/* ✅ Heading Section (same style as List Page) */}
-      <Grid
-        container
-        alignItems="center"
-        justifyContent="space-between"
-        spacing={2}
+      <Card
+        title={isEditMode ? "Edit User" : "Add New User"}
+        showHeaderDivider
+        contentSx={{ p: 2 }}
       >
-        <Grid size={6}>
-          <Typography variant="h5" fontWeight={700}>
-            {id ? "Edit User" : "Add New User"}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {id
-              ? "Update existing user details below"
-              : "Fill in the details to create a new user"}
-          </Typography>
-        </Grid>
-      </Grid>
+        <form onSubmit={formik.handleSubmit} noValidate>
+          <Grid spacing={3}>
+            {/* LEFT COLUMN */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card>
+                <Grid spacing={2}>
+                  {/* First Name */}
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      id="firstName"
+                      name="firstName"
+                      label="First Name"
+                      fullWidth
+                      size="small"
+                      autoComplete="given-name"
+                      value={formik.values.firstName}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      error={
+                        formik.touched.firstName &&
+                        Boolean(formik.errors.firstName)
+                      }
+                      helperText={
+                        formik.touched.firstName && formik.errors.firstName
+                      }
+                    />
+                  </Grid>
 
-      {/* ✅ Form Section */}
-      <Box
-        sx={{
-          backgroundColor: theme.palette.background.paper,
-          padding: 3,
-          borderRadius: theme.shape.borderRadius,
-          mt: 3,
-          maxWidth: 800,
-          mx: "auto",
-        }}
-      >
-        <form onSubmit={formik.handleSubmit}>
-          <Grid container spacing={2}>
-            <Grid size={6}>
-              <TextField
-                fullWidth
-                label="First Name"
-                name="firstName"
-                value={formik.values.firstName}
-                onChange={formik.handleChange}
-                error={
-                  formik.touched.firstName && Boolean(formik.errors.firstName)
-                }
-                helperText={formik.touched.firstName && formik.errors.firstName}
-              />
-            </Grid>
+                  {/* Last Name */}
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      id="lastName"
+                      name="lastName"
+                      label="Last Name"
+                      fullWidth
+                      size="small"
+                      autoComplete="family-name"
+                      value={formik.values.lastName}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      error={
+                        formik.touched.lastName &&
+                        Boolean(formik.errors.lastName)
+                      }
+                      helperText={
+                        formik.touched.lastName && formik.errors.lastName
+                      }
+                    />
+                  </Grid>
 
-            <Grid size={6}>
-              <TextField
-                fullWidth
-                label="Last Name"
-                name="lastName"
-                value={formik.values.lastName}
-                onChange={formik.handleChange}
-                error={
-                  formik.touched.lastName && Boolean(formik.errors.lastName)
-                }
-                helperText={formik.touched.lastName && formik.errors.lastName}
-              />
-            </Grid>
+                  {/* Username */}
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      id="username"
+                      name="username"
+                      label="Username"
+                      fullWidth
+                      size="small"
+                      autoComplete="username"
+                      value={formik.values.username}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      error={
+                        formik.touched.username &&
+                        Boolean(formik.errors.username)
+                      }
+                      helperText={
+                        formik.touched.username && formik.errors.username
+                      }
+                    />
+                  </Grid>
 
-            <Grid size={6}>
-              <TextField
-                fullWidth
-                label="Username"
-                name="username"
-                value={formik.values.username}
-                onChange={formik.handleChange}
-                error={
-                  formik.touched.username && Boolean(formik.errors.username)
-                }
-                helperText={formik.touched.username && formik.errors.username}
-              />
-            </Grid>
+                  {/* Password Fields */}
+                  {!isEditMode && (
+                    <>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                          id="password"
+                          name="password"
+                          label="Password"
+                          type="password"
+                          fullWidth
+                          size="small"
+                          autoComplete="new-password"
+                          value={formik.values.password}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          error={
+                            formik.touched.password &&
+                            Boolean(formik.errors.password)
+                          }
+                          helperText={
+                            formik.touched.password && formik.errors.password
+                          }
+                        />
+                      </Grid>
 
-            {!id && (
-              <>
-                <Grid size={6}>
-                  <TextField
-                    fullWidth
-                    type="password"
-                    label="Password"
-                    name="password"
-                    value={formik.values.password}
-                    onChange={formik.handleChange}
-                    error={
-                      formik.touched.password && Boolean(formik.errors.password)
-                    }
-                    helperText={
-                      formik.touched.password && formik.errors.password
-                    }
-                  />
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          label="Confirm Password"
+                          type="password"
+                          fullWidth
+                          size="small"
+                          autoComplete="new-password"
+                          value={formik.values.confirmPassword}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          error={
+                            formik.touched.confirmPassword &&
+                            Boolean(formik.errors.confirmPassword)
+                          }
+                          helperText={
+                            formik.touched.confirmPassword &&
+                            formik.errors.confirmPassword
+                          }
+                        />
+                      </Grid>
+                    </>
+                  )}
+
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      id="contactNumber"
+                      name="contactNumber"
+                      label="Contact Number"
+                      fullWidth
+                      size="small"
+                      autoComplete="tel"
+                      value={formik.values.contactNumber}
+                      onChange={(e) => {
+                        const formatted = formatPhoneNumber(e.target.value);
+                        formik.setFieldValue("contactNumber", formatted);
+                      }}
+                      onBlur={formik.handleBlur}
+                      error={
+                        formik.touched.contactNumber &&
+                        Boolean(formik.errors.contactNumber)
+                      }
+                      helperText={
+                        formik.touched.contactNumber &&
+                        formik.errors.contactNumber
+                      }
+                    />
+                  </Grid>
+
+                  {/* Start Date */}
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                      id="employeeStartDate"
+                      name="employeeStartDate"
+                      label="Start Date"
+                      type="date"
+                      fullWidth
+                      size="small"
+                      autoComplete="off"
+                      value={
+                        formik.values.employeeStartDate
+                          ? new Date(formik.values.employeeStartDate)
+                              .toISOString()
+                              .split("T")[0]
+                          : ""
+                      }
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      slotProps={{
+                        inputLabel: { shrink: true },
+                      }}
+                      error={
+                        formik.touched.employeeStartDate &&
+                        Boolean(formik.errors.employeeStartDate)
+                      }
+                      helperText={
+                        formik.touched.employeeStartDate &&
+                        formik.errors.employeeStartDate
+                      }
+                    />
+                  </Grid>
                 </Grid>
+              </Card>
+            </Grid>
 
-                <Grid size={6}>
-                  <TextField
-                    fullWidth
-                    type="password"
-                    label="Confirm Password"
-                    name="confirmPassword"
-                    value={formik.values.confirmPassword}
-                    onChange={formik.handleChange}
-                    error={
-                      formik.touched.confirmPassword &&
-                      Boolean(formik.errors.confirmPassword)
-                    }
-                    helperText={
-                      formik.touched.confirmPassword &&
-                      formik.errors.confirmPassword
-                    }
-                  />
+            {/* RIGHT COLUMN */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card>
+                <Grid spacing={2}>
+                  {/* Status */}
+                  <Grid size={{ xs: 12, md: 12 }}>
+                    <TextField
+                      id="status"
+                      name="status"
+                      label="Status"
+                      select
+                      fullWidth
+                      size="small"
+                      autoComplete="off"
+                      value={formik.values.status}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                    >
+                      <MenuItem value="active">Active</MenuItem>
+                      <MenuItem value="inactive">Inactive</MenuItem>
+                    </TextField>
+                  </Grid>
+
+                  {/* Role */}
+                  <Grid size={{ xs: 12, md: 12 }}>
+                    <TextField
+                      id="isAdmin"
+                      name="isAdmin"
+                      label="Role"
+                      select
+                      fullWidth
+                      size="small"
+                      autoComplete="off"
+                      value={formik.values.isAdmin ? "true" : "false"}
+                      onChange={(e) =>
+                        formik.setFieldValue(
+                          "isAdmin",
+                          e.target.value === "true"
+                        )
+                      }
+                      onBlur={formik.handleBlur}
+                    >
+                      <MenuItem value="false">User</MenuItem>
+                      <MenuItem value="true">Admin</MenuItem>
+                    </TextField>
+                  </Grid>
                 </Grid>
-              </>
-            )}
-
-            <Grid size={6}>
-              <TextField
-                fullWidth
-                label="Contact Number"
-                name="contactNumber"
-                value={formik.values.contactNumber}
-                onChange={formik.handleChange}
-                error={
-                  formik.touched.contactNumber &&
-                  Boolean(formik.errors.contactNumber)
-                }
-                helperText={
-                  formik.touched.contactNumber && formik.errors.contactNumber
-                }
-              />
-            </Grid>
-
-            <Grid size={6}>
-              <TextField
-                fullWidth
-                type="date"
-                label="Start Date"
-                name="employeeStartDate"
-                value={
-                  formik.values.employeeStartDate
-                    ? new Date(formik.values.employeeStartDate)
-                        .toISOString()
-                        .split("T")[0]
-                    : ""
-                }
-                onChange={formik.handleChange}
-                InputLabelProps={{ shrink: true }}
-                error={
-                  formik.touched.employeeStartDate &&
-                  Boolean(formik.errors.employeeStartDate)
-                }
-                helperText={
-                  formik.touched.employeeStartDate &&
-                  formik.errors.employeeStartDate
-                }
-              />
-            </Grid>
-
-            <Grid size={6}>
-              <Select
-                fullWidth
-                name="status"
-                value={formik.values.status}
-                onChange={formik.handleChange}
-              >
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="inactive">Inactive</MenuItem>
-              </Select>
-            </Grid>
-
-            <Grid size={6}>
-              <Select
-                fullWidth
-                name="isAdmin"
-                value={formik.values.isAdmin ? "true" : "false"}
-                onChange={(e) =>
-                  formik.setFieldValue("isAdmin", e.target.value === "true")
-                }
-              >
-                <MenuItem value="false">User</MenuItem>
-                <MenuItem value="true">Admin</MenuItem>
-              </Select>
+              </Card>
             </Grid>
           </Grid>
 
-          <Box mt={3} display="flex" gap={2}>
-            <Button variant="contained" type="submit">
-              {id ? "Update" : "Save"}
-            </Button>
-            <Button variant="outlined" onClick={() => navigate("/users")}>
+          {/* Buttons */}
+          <Box
+            display="flex"
+            justifyContent="flex-end"
+            alignItems="center"
+            mt={4}
+            gap={2}
+          >
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={() => navigate("/users")}
+            >
               Cancel
+            </Button>
+            <Button variant="contained" type="submit" disabled={loading}>
+              {loading ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                "Save"
+              )}
             </Button>
           </Box>
         </form>
-      </Box>
+      </Card>
     </Box>
   );
 }

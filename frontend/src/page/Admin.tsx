@@ -5,13 +5,12 @@ import {
   Grid,
   Paper,
   Typography,
-  Divider,
   TextField,
   Button,
   Snackbar,
-  CircularProgress,
   useTheme,
-} from "@mui/material";
+} from "@/components/common";
+import { CircularProgress } from "@mui/material";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { AppDispatch } from "@/app/store";
@@ -27,6 +26,10 @@ import {
 } from "@/features/admin/adminSlice";
 import { formatPhoneNumber } from "@/utils/formatPhoneNumber";
 
+/**
+ * Admin configuration form for company settings and tax preferences.
+ * Adapts to light/dark mode and handles form validation + persistence.
+ */
 export default function AdminConfigPage() {
   const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
@@ -42,10 +45,12 @@ export default function AdminConfigPage() {
     severity: "success" as "success" | "error",
   });
 
+  // Fetch existing config on mount
   useEffect(() => {
     dispatch(fetchAdminConfig());
   }, [dispatch]);
 
+  // Formik configuration
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -77,7 +82,7 @@ export default function AdminConfigPage() {
     },
   });
 
-  // Snackbar feedback
+  // Snackbar management
   useEffect(() => {
     if (success) {
       setSnack({
@@ -87,13 +92,24 @@ export default function AdminConfigPage() {
       });
       dispatch(resetAdminSuccess());
     } else if (error) {
-      setSnack({ open: true, message: error, severity: "error" });
+      setSnack({
+        open: true,
+        message: error,
+        severity: "error",
+      });
       dispatch(clearAdminError());
     }
   }, [success, error, dispatch]);
 
+  // Handle reset form
   const handleReset = () => {
     formik.resetForm();
+  };
+
+  // Handle phone formatting with +1 prefix
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    formik.setFieldValue("companyPhone", formatted);
   };
 
   if (loading && !config) {
@@ -104,9 +120,18 @@ export default function AdminConfigPage() {
     );
   }
 
+  const paperBg =
+    theme.palette.mode === "light"
+      ? theme.palette.background.paper
+      : theme.palette.background.default;
+  const infoBg =
+    theme.palette.mode === "light"
+      ? theme.palette.grey[50]
+      : theme.palette.background.paper;
+
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h5" fontWeight={700} gutterBottom>
+      <Typography variant="h5" fontWeight={700} gutterBottom component="div">
         Company Configuration
       </Typography>
 
@@ -127,61 +152,84 @@ export default function AdminConfigPage() {
 
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Manage your company’s basic information and tax preferences. This
-        information will appear on invoices, receipts, and customer documents.
+        information appears on invoices, receipts, and customer documents.
       </Typography>
 
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 6, md: 8 }}>
+      <Grid spacing={3}>
+        {/* Left Column */}
+        <Grid size={{ xs: 12, md: 8 }}>
           <Paper
             elevation={0}
             sx={{
               p: 3,
               borderRadius: theme.shape.borderRadius,
               border: `1px solid ${theme.palette.divider}`,
+              backgroundColor: paperBg,
+              width: "100%",
             }}
           >
-            <Typography variant="h6" fontWeight={600} gutterBottom sx={{mb:4}}>
+            <Typography
+              variant="h6"
+              component="div"
+              fontWeight={600}
+              gutterBottom
+              sx={{ mb: 4 }}
+            >
               Company Information
             </Typography>
 
             <Box
               component="form"
               onSubmit={formik.handleSubmit}
-              sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+              noValidate
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+              }}
             >
               <TextField
-                label="Company Name"
+                id="companyName"
                 name="companyName"
+                label="Company Name"
                 value={formik.values.companyName}
                 onChange={formik.handleChange}
                 fullWidth
+                autoComplete="organization"
               />
+
               <TextField
-                label="Company Address"
+                id="companyAddress"
                 name="companyAddress"
+                label="Company Address"
                 value={formik.values.companyAddress}
                 onChange={formik.handleChange}
                 fullWidth
+                autoComplete="street-address"
               />
 
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 6 }}>
+              <Grid spacing={2}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
-                    label="Phone"
+                    id="companyPhone"
                     name="companyPhone"
+                    label="Phone"
                     value={formik.values.companyPhone}
-                    onChange={formik.handleChange}
+                    onChange={handlePhoneChange}
                     fullWidth
+                    autoComplete="tel"
                   />
                 </Grid>
-                <Grid size={{ xs: 6 }}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
-                    label="Email"
+                    id="companyEmail"
                     name="companyEmail"
+                    label="Email"
+                    type="email"
                     value={formik.values.companyEmail}
                     onChange={formik.handleChange}
-                    type="email"
                     fullWidth
+                    autoComplete="email"
                     error={
                       !!formik.errors.companyEmail &&
                       !!formik.touched.companyEmail
@@ -194,27 +242,34 @@ export default function AdminConfigPage() {
                 </Grid>
               </Grid>
 
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 6 }}>
+              <Grid spacing={2}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
-                    label="Fax (optional)"
+                    id="companyFax"
                     name="companyFax"
+                    label="Fax (optional)"
                     value={formik.values.companyFax}
                     onChange={formik.handleChange}
                     fullWidth
+                    autoComplete="off"
                   />
                 </Grid>
-                <Grid size={{ xs: 6 }}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
-                    label="Tax Rate (%)"
+                    id="taxRate"
                     name="taxRate"
+                    label="Tax Rate (%)"
+                    type="number"
                     value={formik.values.taxRate}
                     onChange={formik.handleChange}
-                    type="number"
                     inputProps={{ min: 0, step: 0.01 }}
                     fullWidth
-                    error={!!formik.errors.taxRate && !!formik.touched.taxRate}
-                    helperText={formik.touched.taxRate && formik.errors.taxRate}
+                    error={
+                      !!formik.errors.taxRate && !!formik.touched.taxRate
+                    }
+                    helperText={
+                      formik.touched.taxRate && formik.errors.taxRate
+                    }
                   />
                 </Grid>
               </Grid>
@@ -224,7 +279,7 @@ export default function AdminConfigPage() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  mt: 2,
+                  mt: 3,
                 }}
               >
                 <Button
@@ -249,36 +304,42 @@ export default function AdminConfigPage() {
           </Paper>
         </Grid>
 
-        <Grid size={{ xs: 6, md: 4 }}>
+        {/* Right Column (Info Panel) */}
+        <Grid size={{ xs: 12, md: 4 }}>
           <Paper
             elevation={0}
             sx={{
               p: 3,
               borderRadius: theme.shape.borderRadius,
               border: `1px solid ${theme.palette.divider}`,
-              backgroundColor:
-                theme.palette.mode === "light"
-                  ? theme.palette.grey[50]
-                  : theme.palette.background.default,
+              backgroundColor: infoBg,
+              height: "30%",
             }}
           >
-            <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+            <Typography
+              variant="subtitle1"
+              component="div"
+              fontWeight={600}
+              gutterBottom
+            >
               Why this matters
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              The company configuration defines the identity and tax details
-              printed on invoices and receipts. Keeping this information
-              accurate ensures compliance and professional presentation.
+              This configuration defines the identity and tax details printed on
+              invoices and receipts. Keeping it accurate ensures compliance and
+              a professional presentation.
             </Typography>
           </Paper>
         </Grid>
       </Grid>
 
+      {/* Snackbar Feedback */}
       <Snackbar
         open={snack.open}
-        autoHideDuration={4000}
-        onClose={() => setSnack({ ...snack, open: false })}
+        severity={snack.severity}
         message={snack.message}
+        onClose={() => setSnack({ ...snack, open: false })}
+        autoHideDuration={4000}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       />
     </Box>

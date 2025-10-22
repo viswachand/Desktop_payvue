@@ -16,37 +16,57 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Customer } from "@payvue/shared/types/customer";
 import { formatPhoneNumber } from "@/utils/formatPhoneNumber";
+import { formatEmail,isValidEmail } from "@/utils/emailFormatter";
 
 interface AddCustomerDialogProps {
   open: boolean;
   onClose: () => void;
   onSave: (customer: Customer) => void;
+  customer?: Customer;
 }
 
 export default function AddCustomerDialog({
   open,
   onClose,
   onSave,
+  customer,
 }: AddCustomerDialogProps) {
   const theme = useTheme();
 
+  const defaultValues: Customer = {
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    address1: "",
+    address2: "",
+    city: "",
+    postalCode: "",
+    state: "",
+  };
+
+  const initialValues: Customer = customer
+    ? { ...defaultValues, ...customer }
+    : defaultValues;
+
   const formik = useFormik<Customer>({
-    initialValues: {
-      firstName: "",
-      lastName: "",
-      phone: "",
-      email: "",
-      address1: "",
-      address2: "",
-      city: "",
-      postalCode: "",
-      state: "",
-    },
+    initialValues,
+    enableReinitialize: true,
     validationSchema: Yup.object({
       firstName: Yup.string().required("First name is required"),
       phone: Yup.string()
         .matches(/^[0-9()+\- ]+$/, "Phone must contain only numbers")
         .required("Phone is required"),
+      email: Yup.string().test(
+        "email",
+        "Invalid email address",
+        (value) => !value || isValidEmail(value)
+      ),
+      postalCode: Yup.string().test(
+        "postal-code",
+        "Postal code is invalid",
+        (value) => !value || /^[A-Za-z0-9\- ]{3,10}$/.test(value)
+      ),
     }),
 
     onSubmit: (values) => {
@@ -56,10 +76,17 @@ export default function AddCustomerDialog({
     },
   });
 
+  const handleDialogClose = () => {
+    formik.resetForm();
+    onClose();
+  };
+
+  const isEditMode = Boolean(customer);
+
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleDialogClose}
       maxWidth="sm"
       slotProps={{
         paper: {
@@ -79,7 +106,7 @@ export default function AddCustomerDialog({
         }}
       >
         <Typography variant="h6" fontWeight={500}>
-          Add Customer
+          {isEditMode ? "Edit Customer" : "Add Customer"}
         </Typography>
       </DialogTitle>
       <Divider sx={{ mt: 2 }} />
@@ -142,6 +169,9 @@ export default function AddCustomerDialog({
                     if (field.name === "phone") {
                       const formatted = formatPhoneNumber(e.target.value);
                       formik.setFieldValue("phone", formatted);
+                    } else if (field.name === "email") {
+                      const formattedEmail = formatEmail(e.target.value);
+                      formik.setFieldValue("email", formattedEmail);
                     } else {
                       formik.handleChange(e);
                     }
@@ -174,7 +204,7 @@ export default function AddCustomerDialog({
         }}
       >
         <Button
-          onClick={onClose}
+          onClick={handleDialogClose}
           color="inherit"
           sx={{
             borderRadius: theme.shape.borderRadius,

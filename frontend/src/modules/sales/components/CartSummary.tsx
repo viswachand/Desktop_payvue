@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   Box,
   TextField,
@@ -17,6 +17,8 @@ interface CartSummaryProps {
   tax: number;
   total: number;
   taxRate?: number;
+  discountValue?: number;
+  commentValue?: string;
   onDiscountChange?: (value: number) => void;
   onCommentChange?: (value: string) => void;
 }
@@ -26,6 +28,8 @@ export default function CartSummary({
   tax,
   total,
   taxRate,
+  discountValue,
+  commentValue,
   onDiscountChange,
   onCommentChange,
 }: CartSummaryProps) {
@@ -33,8 +37,8 @@ export default function CartSummary({
 
   const [showDiscount, setShowDiscount] = useState(false);
   const [showComment, setShowComment] = useState(false);
-  const [discount, setDiscount] = useState<number>(0);
-  const [comment, setComment] = useState("");
+  const [discountInput, setDiscountInput] = useState("");
+  const [commentInput, setCommentInput] = useState("");
 
   const [snackOpen, setSnackOpen] = useState(false);
   const [snackMessage, setSnackMessage] = useState("");
@@ -51,43 +55,58 @@ export default function CartSummary({
     []
   );
 
+  useEffect(() => {
+    if (showDiscount) {
+      setDiscountInput(
+        discountValue && discountValue > 0 ? discountValue.toString() : ""
+      );
+    }
+  }, [showDiscount, discountValue]);
+
+  useEffect(() => {
+    if (showComment) {
+      setCommentInput(commentValue ?? "");
+    }
+  }, [showComment, commentValue]);
+
   const handleDiscountInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (/^\d*\.?\d*$/.test(val)) {
-      setDiscount(Number(val));
+      setDiscountInput(val);
     }
   };
 
   const handleAddDiscount = () => {
-    if (discount <= 0)
+    const parsed = Number(discountInput);
+    const grossTotal = total + (discountValue ?? 0);
+
+    if (!discountInput || parsed <= 0)
       return showSnack("Enter a valid discount amount.", "warning");
-    if (discount > total)
+    if (parsed > grossTotal)
       return showSnack("Discount cannot exceed total.", "error");
 
-    onDiscountChange?.(discount);
+    onDiscountChange?.(parsed);
     setShowDiscount(false);
+    setDiscountInput(parsed.toString());
     showSnack("Discount applied successfully.", "success");
   };
 
   const handleRemoveDiscount = () => {
-    setDiscount(0);
+    setDiscountInput("");
     onDiscountChange?.(0);
     showSnack("Discount removed.", "warning");
   };
 
   const handleAddComment = () => {
-    if (!comment.trim())
+    if (!commentInput.trim())
       return showSnack("Comment cannot be empty.", "warning");
-    onCommentChange?.(comment);
+    onCommentChange?.(commentInput);
     setShowComment(false);
     showSnack("Comment added.", "success");
   };
 
-  // ✅ Calculate final total dynamically (with discount)
-  const finalTotal = useMemo(
-    () => Math.max(total - discount, 0),
-    [total, discount]
-  );
+  const appliedDiscount = discountValue ?? 0;
+  const appliedComment = commentValue ?? "";
 
   return (
     <>
@@ -156,7 +175,7 @@ export default function CartSummary({
             <Stack direction="row" alignItems="center" spacing={1}>
               <TextField
                 size="small"
-                value={discount || ""}
+                value={discountInput}
                 onChange={handleDiscountInput}
                 placeholder="0.00"
                 sx={{
@@ -183,9 +202,9 @@ export default function CartSummary({
               multiline
               rows={2}
               fullWidth
-              value={comment}
+              value={commentInput}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setComment(e.target.value)
+                setCommentInput(e.target.value)
               }
               placeholder="Add a note or comment"
               sx={{ "& .MuiOutlinedInput-root": { borderRadius: 1.5 } }}
@@ -202,7 +221,7 @@ export default function CartSummary({
         )}
 
         {/* Applied Discount */}
-        {discount > 0 && (
+        {appliedDiscount > 0 && (
           <Stack
             direction="row"
             alignItems="center"
@@ -215,12 +234,28 @@ export default function CartSummary({
             </Typography>
             <Stack direction="row" alignItems="center" spacing={0.5}>
               <Typography variant="body2" color="error.main">
-                -${discount.toFixed(2)}
+                -${appliedDiscount.toFixed(2)}
               </Typography>
               <IconButton size="small" onClick={handleRemoveDiscount}>
                 <DeleteIcon fontSize="small" />
               </IconButton>
             </Stack>
+          </Stack>
+        )}
+
+        {appliedComment && (
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            mb={1}
+            sx={{ borderBottom: `1px solid ${theme.palette.divider}`, pb: 0.5 }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              Comment
+            </Typography>
+            <Typography variant="body2" color="text.primary">
+              {appliedComment}
+            </Typography>
           </Stack>
         )}
 
@@ -234,7 +269,7 @@ export default function CartSummary({
 
         <Stack direction="row" justifyContent="space-between" mb={1}>
           <Typography fontWeight={700}>Total</Typography>
-          <Typography fontWeight={700}>{finalTotal.toFixed(2)}</Typography>
+          <Typography fontWeight={700}>{total.toFixed(2)}</Typography>
         </Stack>
       </Box>
 

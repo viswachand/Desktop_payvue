@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Box, Typography, Button, Snackbar } from "@/components/common";
 import { IconButton, Stack, useTheme } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import AddCustomerDialog from "./AddCustomerDialog";
 import CartSummary from "./CartSummary";
 import { useNavigate } from "react-router-dom";
@@ -50,6 +51,7 @@ export default function CartPanel() {
 
   // Customer Dialog
   const [openDialog, setOpenDialog] = useState(false);
+  const [dialogCustomer, setDialogCustomer] = useState<Customer | null>(null);
 
   // ✅ Correct totals (with dynamic tax)
   const { subtotal, tax, total } = useMemo(
@@ -70,7 +72,40 @@ export default function CartPanel() {
   // 🧍 Customer actions
   const handleSaveCustomer = (data: Customer) => {
     dispatch(setCustomer(data));
+    setDialogCustomer(null);
     setOpenDialog(false);
+  };
+
+  const handleAddCustomer = () => {
+    setDialogCustomer(null);
+    setOpenDialog(true);
+  };
+
+  const handleEditCustomer = () => {
+    if (!customer) return;
+    setDialogCustomer(customer);
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setDialogCustomer(null);
+  };
+
+  const handleEditCartItem = (item: CartItem) => {
+    const itemType = (item.itemType ?? "").toLowerCase();
+
+    if (itemType === "custom") {
+      navigate("/sale/custom", { state: { editItem: item } });
+      return;
+    }
+
+    if (itemType === "repair" || itemType === "grill") {
+      navigate("/sale/service", { state: { editItem: item } });
+      return;
+    }
+
+    showSnack("Editing is available only for custom or service items.", "warning");
   };
 
   const handleRemoveCustomer = () => {
@@ -121,7 +156,7 @@ export default function CartPanel() {
         <Button
           variant="outlined"
           size="small"
-          onClick={() => setOpenDialog(true)}
+          onClick={handleAddCustomer}
           sx={{
             mb: 2,
             textTransform: "none",
@@ -158,9 +193,9 @@ export default function CartPanel() {
                 sx={{
                   width: 40,
                   height: 40,
-                  borderRadius: 1.2,
+                  borderRadius: theme.shape.borderRadius,
                   backgroundColor: theme.palette.primary.main,
-                  color: "#fff",
+                  color: theme.palette.primary.contrastText,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -182,19 +217,35 @@ export default function CartPanel() {
               </Box>
             </Stack>
 
-            <IconButton
-              size="small"
-              disableRipple
-              onClick={handleRemoveCustomer}
-              sx={{
-                "&:hover": {
-                  background: "transparent",
-                  color: theme.palette.error.main,
-                },
-              }}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
+            <Stack direction="row" spacing={0.5}>
+              <IconButton
+                size="small"
+                disableRipple
+                onClick={handleEditCustomer}
+                sx={{
+                  "&:hover": {
+                    background: "transparent",
+                    color: theme.palette.primary.main,
+                  },
+                }}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+
+              <IconButton
+                size="small"
+                disableRipple
+                onClick={handleRemoveCustomer}
+                sx={{
+                  "&:hover": {
+                    background: "transparent",
+                    color: theme.palette.error.main,
+                  },
+                }}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Stack>
           </Box>
 
           <Box
@@ -241,6 +292,23 @@ export default function CartPanel() {
                 <Typography fontWeight={500}>
                   ${(item.costPrice * item.qty).toFixed(2)}
                 </Typography>
+                {["custom", "repair", "grill"].includes(
+                  (item.itemType ?? "").toLowerCase()
+                ) && (
+                  <IconButton
+                    size="small"
+                    disableRipple
+                    onClick={() => handleEditCartItem(item)}
+                    sx={{
+                      "&:hover": {
+                        background: "transparent",
+                        color: theme.palette.primary.main,
+                      },
+                    }}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                )}
                 <IconButton
                   size="small"
                   disableRipple
@@ -269,12 +337,13 @@ export default function CartPanel() {
         )}
       </Box>
 
-      {/* 🧾 Summary Section */}
       <CartSummary
         subtotal={subtotal}
         tax={tax}
         total={total}
         taxRate={taxRate}
+        discountValue={discount}
+        commentValue={comment}
         onDiscountChange={(value) => dispatch(setDiscount(Number(value)))}
         onCommentChange={(value) => dispatch(setComment(value))}
       />
@@ -306,8 +375,9 @@ export default function CartPanel() {
       {/* 🧍 Customer Dialog */}
       <AddCustomerDialog
         open={openDialog}
-        onClose={() => setOpenDialog(false)}
+        onClose={handleCloseDialog}
         onSave={handleSaveCustomer}
+        customer={dialogCustomer ?? undefined}
       />
 
       {/* 🔔 Snackbar */}

@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 import type { Item } from "@payvue/shared/types/item";
-import { normalizeCartItem } from "@/utils/cartAdapter"; 
+import { normalizeCartItem } from "@/utils/cartAdapter";
 
 // -----------------------------------------
 // Types
@@ -62,6 +62,19 @@ const cartSlice = createSlice({
             }
         },
 
+        // ✅ Update full cart item (used for editing custom/service entries)
+        updateCartItem: (state, action: PayloadAction<CartItem>) => {
+            const index = state.items.findIndex(
+                (i: CartItem) => i.id === action.payload.id
+            );
+            if (index !== -1) {
+                state.items[index] = {
+                    ...state.items[index],
+                    ...action.payload,
+                };
+            }
+        },
+
         // ✅ Clear all cart items
         clearCart: (state) => {
             state.items = [];
@@ -72,8 +85,13 @@ const cartSlice = createSlice({
 // -----------------------------------------
 // Exports
 // -----------------------------------------
-export const { addToCart, removeFromCart, updateQuantity, clearCart } =
-    cartSlice.actions;
+export const {
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    updateCartItem,
+    clearCart,
+} = cartSlice.actions;
 
 // -----------------------------------------
 // Selectors

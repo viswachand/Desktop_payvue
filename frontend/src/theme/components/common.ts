@@ -55,68 +55,86 @@ export const createCommonComponents = (theme: Theme) => ({
     },
   },
 
-  MuiTextField: {
-    styleOverrides: {
-      root: {
-        gap: theme.spacing(1),
+ MuiTextField: {
+  styleOverrides: {
+    root: {
+      gap: theme.spacing(1),
 
-        "& textarea": {
-          overflow: "hidden !important",
-          resize: "none !important",
+      "& textarea": {
+        overflow: "hidden !important",
+        resize: "none !important",
+      },
+
+      // Remove number spinners globally
+      "& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button": {
+        WebkitAppearance: "none",
+        margin: 0,
+      },
+      "& input[type=number]": {
+        MozAppearance: "textfield",
+      },
+
+      "& .MuiOutlinedInput-root": {
+        borderRadius: theme.shape.borderRadius,
+        borderColor: theme.palette.divider,
+        transition: "all 0.2s ease",
+        "& fieldset": {
+          top: 0,
+          borderColor: theme.palette.divider,
         },
+        "& legend": { display: "none" },
+        "&:hover fieldset": {
+          borderColor: theme.palette.primary.main,
+        },
+        "&.Mui-focused fieldset": {
+          borderColor: theme.palette.primary.main,
+        },
+      },
 
-        "& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button":
-          {
-            WebkitAppearance: "none",
-            margin: 0,
-          },
-        "& input[type=number]": {
+      "& .MuiOutlinedInput-input": {
+        padding: "10.5px 14px",
+        color: theme.palette.text.primary,
+        backgroundColor: theme.palette.background.paper,
+        fontSize: "0.9rem",
+        "&::placeholder": {
+          color: theme.palette.text.disabled,
+          opacity: 1,
+        },
+      },
+
+      // 🔹 Label
+      "& .MuiInputLabel-root": {
+        color: theme.palette.text.primary,
+        fontSize: "0.875rem",
+        fontWeight: 500,
+        position: "static",
+        transform: "none",
+        marginBottom: theme.spacing(0.5),
+        "&.Mui-focused": {
+          color: theme.palette.text.secondary,
+        },
+      },
+
+      // 💵 Amount Field Global Styling
+      "& input[name*='amount'], & input[name*='price'], & input[name*='total'], & input[name*='cost']": {
+        textAlign: "left",
+
+        "&:invalid": { boxShadow: "none" },
+        "&::-webkit-inner-spin-button, &::-webkit-outer-spin-button": {
+          WebkitAppearance: "none",
+          margin: 0,
+        },
+        "&[type=number]": {
           MozAppearance: "textfield",
         },
-
-        "& .MuiOutlinedInput-root": {
-          borderRadius: theme.shape.borderRadius,
-          borderColor: theme.palette.divider,
-          transition: "all 0.2s ease",
-          "& fieldset": {
-            top: 0,
-            borderColor: theme.palette.divider,
-          },
-          "& legend": { display: "none" },
-          "&:hover fieldset": {
-            borderColor: theme.palette.primary.main,
-          },
-          "&.Mui-focused fieldset": {
-            borderColor: theme.palette.primary.main,
-          },
-        },
-
-        "& .MuiOutlinedInput-input": {
-          padding: "10.5px 14px",
-          color: theme.palette.text.primary,
-          backgroundColor: theme.palette.background.paper,
-          fontSize: "0.9rem",
-          "&::placeholder": {
-            color: theme.palette.text.disabled,
-            opacity: 1,
-          },
-        },
-
-        // 🧩 Label
-        "& .MuiInputLabel-root": {
-          color: theme.palette.text.primary,
-          fontSize: "0.875rem",
-          fontWeight: 500,
-          position: "static",
-          transform: "none",
-          marginBottom: theme.spacing(0.5),
-          "&.Mui-focused": {
-            color: theme.palette.text.secondary,
-          },
+        "&:focus": {
+          outline: "none",
         },
       },
     },
   },
+},
+
 
   MuiFormHelperText: {
     styleOverrides: {

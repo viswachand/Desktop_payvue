@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import {
   Box,
@@ -14,11 +14,37 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import SaleLayout from "../layout/SaleLayout";
 import type { AppDispatch } from "@/app/store";
-import { addToCart } from "@/features/cart/cartSlice";
+import { addToCart, updateCartItem, CartItem } from "@/features/cart/cartSlice";
+import { useLocation, useNavigate } from "react-router-dom";
+
+interface CustomFormValues {
+  itemName: string;
+  description: string;
+  material: string;
+  weight: string;
+  goldPrice: string;
+  makingCharge: string;
+  laborCharge: string;
+  deliveryDate: string;
+}
+
+const createDefaultValues = (): CustomFormValues => ({
+  itemName: "",
+  description: "",
+  material: "",
+  weight: "",
+  goldPrice: "",
+  makingCharge: "",
+  laborCharge: "",
+  deliveryDate: "",
+});
 
 export default function CustomSale() {
   const theme = useTheme();
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [editingItem, setEditingItem] = useState<CartItem | null>(null);
 
   const [snackOpen, setSnackOpen] = useState(false);
   const [snackMessage, setSnackMessage] = useState("");
@@ -26,17 +52,46 @@ export default function CustomSale() {
     "success" | "error" | "warning"
   >("success");
 
+  useEffect(() => {
+    const state = location.state as { editItem?: CartItem } | null;
+    const incoming = state?.editItem;
+    const normalizedType = (incoming?.itemType ?? "").toLowerCase();
+
+    if (incoming && normalizedType === "custom") {
+      setEditingItem(incoming);
+    } else {
+      setEditingItem(null);
+    }
+  }, [location.state]);
+
+  const isEditing = useMemo(() => Boolean(editingItem), [editingItem]);
+
+  const initialValues = useMemo<CustomFormValues>(() => {
+    if (!editingItem) return createDefaultValues();
+
+    return {
+      itemName: editingItem.itemName ?? "",
+      description: editingItem.itemDescription ?? "",
+      material: (editingItem as any).material ?? "",
+      weight:
+        editingItem.weight !== undefined ? String(editingItem.weight) : "",
+      goldPrice:
+        editingItem.goldPrice !== undefined ? String(editingItem.goldPrice) : "",
+      makingCharge:
+        editingItem.makingCharge !== undefined
+          ? String(editingItem.makingCharge)
+          : "",
+      laborCharge:
+        editingItem.laborCharge !== undefined
+          ? String(editingItem.laborCharge)
+          : "",
+      deliveryDate: (editingItem as any).deliveryDate ?? "",
+    };
+  }, [editingItem]);
+
   const formik = useFormik({
-    initialValues: {
-      itemName: "",
-      description: "",
-      material: "",
-      weight: "",
-      goldPrice: "",
-      makingCharge: "",
-      laborCharge: "",
-      deliveryDate: "",
-    },
+    initialValues,
+    enableReinitialize: true,
     validationSchema: Yup.object({
       itemName: Yup.string().required("Item name is required"),
       material: Yup.string().required("Material is required"),
@@ -51,9 +106,8 @@ export default function CustomSale() {
       const l = Number(values.laborCharge) || 0;
       const total = w * g + m + l;
 
-      const newCustomItem = {
-        id: Date.now().toString(),
-        itemType: "custom" as const, 
+      const baseItem = {
+        itemType: "custom" as const,
         itemName: values.itemName,
         itemDescription: values.description,
         material: values.material,
@@ -62,9 +116,31 @@ export default function CustomSale() {
         makingCharge: m,
         laborCharge: l,
         costPrice: total,
-        qty: 1,
         taxApplied: true,
         deliveryDate: values.deliveryDate,
+      };
+
+      if (isEditing && editingItem) {
+        const updatedItem: CartItem = {
+          ...editingItem,
+          ...baseItem,
+          qty: editingItem.qty ?? 1,
+        };
+
+        dispatch(updateCartItem(updatedItem));
+        setSnackSeverity("success");
+        setSnackMessage("Custom jewelry item updated in cart!");
+        setSnackOpen(true);
+        resetForm({ values: createDefaultValues() });
+        setEditingItem(null);
+        navigate("/sale/custom", { replace: true, state: undefined });
+        return;
+      }
+
+      const newCustomItem = {
+        id: Date.now().toString(),
+        ...baseItem,
+        qty: 1,
       };
 
       dispatch(addToCart(newCustomItem));
@@ -72,7 +148,7 @@ export default function CustomSale() {
       setSnackSeverity("success");
       setSnackMessage("Custom jewelry item added to cart!");
       setSnackOpen(true);
-      resetForm();
+      resetForm({ values: createDefaultValues() });
     },
   });
 
@@ -90,7 +166,7 @@ export default function CustomSale() {
       <form onSubmit={formik.handleSubmit}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3, p: 2 }}>
           <Typography variant="h5" fontWeight={700}>
-            Custom Jewelry Order
+            {isEditing ? "Edit Custom Item" : "Custom Jewelry Order"}
           </Typography>
 
           <Box
@@ -232,7 +308,7 @@ export default function CustomSale() {
                     py: 1.2,
                   }}
                 >
-                  + Add to Cart
+                  {isEditing ? "Update Cart Item" : "+ Add to Cart"}
                 </Button>
               </Box>
             </Grid>

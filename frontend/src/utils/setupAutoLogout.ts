@@ -11,7 +11,7 @@ let logoutTimer: NodeJS.Timeout | null = null;
 export function setupAutoLogout(token: string) {
   try {
     const decoded = jwtDecode<JwtPayload>(token);
-    const expiryTime = decoded.exp * 1000; 
+    const expiryTime = decoded.exp * 1000;
     const timeout = expiryTime - Date.now();
 
     if (logoutTimer) clearTimeout(logoutTimer);
@@ -19,9 +19,10 @@ export function setupAutoLogout(token: string) {
     if (timeout > 0) {
       logoutTimer = setTimeout(() => {
         store.dispatch(logout());
-        window.location.href = "/login";
+        window.location.hash = "#/login";
       }, timeout);
-      console.log(`⏳ Auto-logout scheduled in ${timeout / 1000}s`);
+
+      console.log(`⏳ Auto-logout scheduled in ${(timeout / 1000).toFixed(0)}s`);
     }
   } catch (error) {
     console.error("Failed to decode token for auto logout", error);

@@ -1,15 +1,18 @@
 import { useSelector } from "react-redux";
 import { Navigate, Outlet } from "react-router-dom";
-import { selectIsAuthenticated, selectIsAdmin } from "@/features/auth/authSlice";
-import { Box, CircularProgress } from "@mui/material";
+import { selectIsAdmin, selectIsAuthenticated } from "@/features/auth/authSlice";
 
-const AdminRoute = () => {
-  const isAuthenticated = useSelector(selectIsAuthenticated);
+export default function AdminRoute() {
   const isAdmin = useSelector(selectIsAdmin);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
 
-  if (!isAdmin) return <Navigate to="/unauthorized" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/unauthorized" replace />;
+  }
 
   return <Outlet />;
-};
-
-export default AdminRoute;
+}

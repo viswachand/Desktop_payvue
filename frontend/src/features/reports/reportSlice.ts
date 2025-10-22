@@ -1,10 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
-import { API } from "@/services/axios";
-import {
-  safeApiCall,
-  extractAxiosErrorMessage,
-} from "@/utils/apiHelpers";
+import { API } from "@/api/axios";
+import { safeApiCall, extractAxiosErrorMessage } from "@/api/apiHelpers"
 import type { Sale } from "@payvue/shared/types/sale";
 
 // ----------------------------------------------------

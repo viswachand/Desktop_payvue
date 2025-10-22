@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
-import { API } from "@/services/axios";
-import { safeApiCall, extractAxiosErrorMessage } from "@/utils/apiHelpers";
+import { API } from "@/api/axios";
+import { safeApiCall, extractAxiosErrorMessage } from "@/api/apiHelpers"
 import type { Policy } from "@payvue/shared/types/policy";
 
 // ----------------------------------------------------

@@ -6,106 +6,68 @@ import { saleRoutes } from "@/modules/sales";
 import { InventoryRoutes } from "@/modules/inventory";
 import { reportsRoutes } from "@/modules/reports";
 import { userRoutes } from "@/modules/user";
-
-// Route guards
 import PrivateRoute from "@/routes/PrivateRoute";
 import AdminRoute from "@/routes/AdminRoute";
 import PublicRoute from "@/routes/PublicRoute";
 import PaymentPage from "./page/PaymentScreen";
-
-// Layout
 import AppLayout from "@/components/layout/AppLayout";
 
-// App props (theme toggling)
 interface AppProps {
   toggleTheme: () => void;
   currentMode: "light" | "dark";
 }
 
-// Lazy-loaded pages
 const Login = lazy(() => import("@/page/Login"));
 const Dashboard = lazy(() => import("@/page/Dashboard"));
 const SuccessScreen = lazy(() => import("@/page/PaymentSuccessPage"));
-
-// Admin & Others
 const AdminScreen = lazy(() => import("@/page/Admin"));
 const PoliciesScreen = lazy(() => import("@/page/PoliciesPage"));
 const PageNotFound = lazy(() => import("@/page/PageNotFound"));
 const Unauthorized = lazy(() => import("@/page/Unauthorized"));
 
-function App({ toggleTheme, currentMode }: AppProps) {
+export default function App({ toggleTheme, currentMode }: AppProps) {
   return (
     <Suspense
       fallback={
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight="100vh"
-        >
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
           <CircularProgress />
         </Box>
       }
     >
       <Routes>
-        {/* Public routes */}
         <Route element={<PublicRoute />}>
-          <Route path="/login" element={<Login />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Login />} />
         </Route>
 
-        {/* Private routes */}
         <Route element={<PrivateRoute />}>
-          <Route
-            element={
-              <AppLayout toggleTheme={toggleTheme} currentMode={currentMode} />
-            }
-          >
-            {/* Dashboard */}
+          <Route element={<AppLayout toggleTheme={toggleTheme} currentMode={currentMode} />}>
             <Route path="/dashboard" element={<Dashboard />} />
 
-            {saleRoutes.map((route) => (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={route.element}
-              />
+            {saleRoutes.map((r) => (
+              <Route key={r.path} path={r.path} element={r.element} />
             ))}
-            {layawayRoutes.map((route) => (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={route.element}
-              />
+            {layawayRoutes.map((r) => (
+              <Route key={r.path} path={r.path} element={r.element} />
+            ))}
+            {InventoryRoutes.map((r) => (
+              <Route key={r.path} path={r.path} element={r.element} />
             ))}
 
-            {InventoryRoutes.map((route) => (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={route.element}
-              />
-            ))}
-            {reportsRoutes.map((route) => (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={route.element}
-              />
-            ))}
-            {userRoutes.map((route) => (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={route.element}
-              />
-            ))}
+            <Route element={<AdminRoute />}>
+              {reportsRoutes.map((r) => (
+                <Route key={r.path} path={r.path} element={r.element} />
+              ))}
+              {userRoutes.map((r) => (
+                <Route key={r.path} path={r.path} element={r.element} />
+              ))}
+              <Route path="/admin" element={<AdminScreen />} />
+               <Route path="/policies" element={<PoliciesScreen />} />
+            </Route>
 
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/success" element={<SuccessScreen />} />
-
-            <Route path="/admin" element={<AdminScreen />} />
-            <Route path="/policies" element={<PoliciesScreen />} />
+           
           </Route>
         </Route>
 
@@ -115,5 +77,3 @@ function App({ toggleTheme, currentMode }: AppProps) {
     </Suspense>
   );
 }
-
-export default App;

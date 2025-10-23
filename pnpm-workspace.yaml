@@ -3,7 +3,6 @@ packages:
   - backend
   - shared
   - app
-  - n8n
 
 ignoredBuiltDependencies:
   - electron

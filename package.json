@@ -12,7 +12,6 @@
     "dev:backend": "npm run dev --workspace=backend",
     "dev:frontend": "npm run dev --workspace=frontend",
     "dev:app": "npm run dev --workspace=app",
-    "dev:n8n": "npm run dev --workspace=n8n",
     "dev": "npm run dev:backend & npm run dev:frontend",
     "build": "npm run build:shared && npm run build:backend",
     "build:shared": "cd shared && tsc -p tsconfig.json",

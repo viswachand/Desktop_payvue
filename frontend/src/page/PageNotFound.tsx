@@ -1,8 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Typography, Button, Paper } from "@/components/common";
-import img from "@/assets/page_not_found_dark.png"
-
+import img from "@/assets/page_not_found_dark.png";
 
 const NotFound: React.FC = () => {
   const navigate = useNavigate();
@@ -27,12 +26,11 @@ const NotFound: React.FC = () => {
           maxWidth: 480,
         }}
       >
+        {/* ✅ Removed invalid cast */}
         <Box
           component="img"
-          {...({
-            src: img,
-            alt: "Logo",
-          } as React.ComponentProps<"img">)}
+          src={img}
+          alt="Page Not Found Illustration"
           sx={{
             width: "65%",
             maxWidth: 300,

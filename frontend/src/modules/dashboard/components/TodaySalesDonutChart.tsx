@@ -1,5 +1,6 @@
-import { memo, useEffect, useState, type ComponentType } from "react";
+import { memo } from "react";
 import { Box, Typography, useTheme } from "@mui/material";
+import { PieChart } from "@mui/x-charts/PieChart";
 
 interface DonutDatum {
   id: number;
@@ -13,25 +14,16 @@ interface TodaySalesDonutChartProps {
 
 function TodaySalesDonutChartComponent({ data }: TodaySalesDonutChartProps) {
   const theme = useTheme();
-  const [PieChartComponent, setPieChartComponent] = useState<ComponentType<any> | null>(null);
   const total = data.reduce((sum, segment) => sum + segment.value, 0);
   const hasData = total > 0;
-
-  useEffect(() => {
-    let active = true;
-    import("@mui/x-charts")
-      .then((module: { PieChart?: ComponentType<any> }) => {
-        if (active && module.PieChart) {
-          setPieChartComponent(() => module.PieChart!);
-        }
-      })
-      .catch(() => {
-        if (active) setPieChartComponent(null);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const colorPalette = [
+    theme.palette.primary.main,
+    theme.palette.success.main,
+    theme.palette.warning.main,
+    theme.palette.info.main,
+    theme.palette.secondary.main,
+    theme.palette.error.main,
+  ];
 
   return (
     <Box
@@ -47,14 +39,9 @@ function TodaySalesDonutChartComponent({ data }: TodaySalesDonutChartProps) {
         Today's Sales Mix
       </Typography>
 
-      {hasData && PieChartComponent ? (
-        <Box
-          sx={{
-            position: "relative",
-            pb: 4, // ⬅️ Creates extra space for the legend to breathe
-          }}
-        >
-          <PieChartComponent
+      {hasData ? (
+        <>
+          <PieChart
             height={260}
             series={[
               {
@@ -62,6 +49,7 @@ function TodaySalesDonutChartComponent({ data }: TodaySalesDonutChartProps) {
                   id: segment.id,
                   value: segment.value,
                   label: segment.label,
+                  color: colorPalette[segment.id % colorPalette.length],
                 })),
                 innerRadius: 60,
                 paddingAngle: 4,
@@ -69,13 +57,38 @@ function TodaySalesDonutChartComponent({ data }: TodaySalesDonutChartProps) {
             ]}
             margin={{ top: 10, right: 10, bottom: 40, left: 10 }}
             slotProps={{
-              legend: {
-                direction: "row",
-                position: { vertical: "bottom", horizontal: "center" },
-              },
+              legend: { hidden: true },
             }}
           />
-        </Box>
+          <Box
+            mt={2.5}
+            display="flex"
+            flexWrap="wrap"
+            gap={1.5}
+            justifyContent="center"
+          >
+            {data.map((segment) => (
+              <Box
+                key={segment.id}
+                display="flex"
+                alignItems="center"
+                gap={1}
+              >
+                <Box
+                  sx={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: "50%",
+                    backgroundColor: colorPalette[segment.id % colorPalette.length],
+                  }}
+                />
+                <Typography variant="caption" color="text.secondary">
+                  {segment.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </>
       ) : (
         <Typography variant="body2" color="text.secondary">
           Charts unavailable or no sales recorded today.

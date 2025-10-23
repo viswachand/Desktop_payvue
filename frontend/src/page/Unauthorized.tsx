@@ -1,9 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-
 import { Box, Typography, Button, Paper, useTheme } from "@/components/common";
-import img from "@/assets/access.png"; 
-
+import img from "@/assets/access.png";
 
 const Unauthorized: React.FC = () => {
   const navigate = useNavigate();
@@ -29,19 +27,17 @@ const Unauthorized: React.FC = () => {
           maxWidth: 480,
         }}
       >
+        {/* ✅ Removed invalid cast */}
         <Box
           component="img"
-          {...({
-            src: img,
-            alt: "Access Denied Illustration",
-          } as React.ComponentProps<"img">)}
+          src={img}
+          alt="Access Denied Illustration"
           sx={{
             width: "70%",
             maxWidth: 300,
             height: "auto",
             mx: "auto",
             mb: 3,
-        
           }}
         />
 
@@ -49,10 +45,9 @@ const Unauthorized: React.FC = () => {
           Access Denied
         </Typography>
 
-         <Typography variant="body2" color="text.secondary" mb={4}>
+        <Typography variant="body2" color="text.secondary" mb={4}>
           You don’t have permission to view this page.
         </Typography>
-
 
         <Button
           variant="contained"

@@ -16,8 +16,8 @@ import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import WbSunnyRoundedIcon from "@mui/icons-material/WbSunnyRounded";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { logout } from "@/features/auth/authSlice";
+import { redirectToLogin } from "@/utils/setupAutoLogout";
 
 interface AppHeaderProps {
   toggleTheme: () => void;
@@ -31,11 +31,10 @@ export default function AppHeader({
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate("/login");
+    redirectToLogin();
     handleMenuClose();
   };
 

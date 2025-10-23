@@ -5,28 +5,23 @@ import type { AppDispatch } from "@/app/store";
 import {
   fetchSales,
   selectSales,
-  selectSaleLoading,
   selectSaleError,
   clearSaleError,
 } from "@/features/sales/saleSlice";
 import {
   fetchLayaways,
   selectLayaways,
-  selectLayawayLoading,
   selectLayawayError,
   clearLayawayError,
 } from "@/features/layaway/layawaySlice";
 import {
   fetchGoldBuys,
   selectGoldBuyRecords,
-  selectGoldBuyLoading,
   selectGoldBuyError,
   clearGoldBuyError,
 } from "@/features/goldBuy/goldSlice";
 import SummaryCards from "../components/SummaryCards";
 import SalesTrendChart from "../components/SalesTrendChart";
-import RevenueBreakdownChart from "../components/RevenueBreakdownChart";
-import PendingLayawayTable from "../components/PendingLayawayTable";
 import TodaySalesDonutChart from "../components/TodaySalesDonutChart";
 
 type SaleTypeKey = "inventory" | "service" | "custom" | "layaway" | "gold_buy";
@@ -48,10 +43,6 @@ export default function AdminDashboardPage() {
   const sales = useSelector(selectSales);
   const layaways = useSelector(selectLayaways);
   const goldBuys = useSelector(selectGoldBuyRecords);
-
-  const salesLoading = useSelector(selectSaleLoading);
-  const layawayLoading = useSelector(selectLayawayLoading);
-  const goldLoading = useSelector(selectGoldBuyLoading);
 
   const salesError = useSelector(selectSaleError);
   const layawayError = useSelector(selectLayawayError);
@@ -80,39 +71,6 @@ export default function AdminDashboardPage() {
     dispatch(clearLayawayError());
     dispatch(clearGoldBuyError());
   };
-
-  const dashboardMetrics = useMemo(() => {
-    const totalRevenue = sales.reduce((sum, sale) => sum + (sale.total ?? 0), 0);
-    const paidSales = sales.filter((sale) => sale.status === "paid" || sale.balanceAmount === 0);
-    const averageTicket = paidSales.length
-      ? totalRevenue / paidSales.length
-      : 0;
-    const pendingLayaways = layaways.filter((entry) => entry.status !== "paid" && entry.balanceAmount && entry.balanceAmount > 0);
-    const goldPayout = goldBuys.reduce((sum, ticket) => sum + (ticket.totals?.payout ?? 0), 0);
-
-    return [
-      {
-        label: "Total Revenue",
-        value: currency(totalRevenue),
-        helper: `${paidSales.length} fulfilled sales`,
-      },
-      {
-        label: "Average Ticket",
-        value: currency(averageTicket),
-        helper: `${sales.length} recorded orders`,
-      },
-      {
-        label: "Open Layaways",
-        value: pendingLayaways.length.toString(),
-        helper: `${currency(pendingLayaways.reduce((sum, entry) => sum + (entry.balanceAmount ?? 0), 0))} outstanding`,
-      },
-      {
-        label: "Gold Buy Exposure",
-        value: currency(goldPayout),
-        helper: `${goldBuys.length} tickets`,
-      },
-    ];
-  }, [sales, layaways, goldBuys]);
 
   const aggregated = useMemo(() => {
     const saleTypes: SaleTypeKey[] = ["inventory", "service", "custom", "layaway", "gold_buy"];
@@ -218,6 +176,10 @@ export default function AdminDashboardPage() {
 
     const weekDataset = Array.from(weekMap.values());
     const monthDataset = Array.from(monthMap.values());
+    const weekLabels = weekDataset.map((item) => item.label);
+    const weekTotals = weekDataset.map((item) =>
+      saleTypes.reduce((sum, type) => sum + item[type], 0)
+    );
 
     const aggregateFor = (dataset: Array<{ label: string } & Record<SaleTypeKey, number>>) =>
       saleTypes.map((type) => ({
@@ -234,16 +196,83 @@ export default function AdminDashboardPage() {
     return {
       trend: { week: weekDataset, month: monthDataset },
       breakdown: { week: aggregateFor(weekDataset), month: aggregateFor(monthDataset) },
-      today: donutData,
+      today: {
+        segments: donutData,
+        total: donutData.reduce((sum, item) => sum + item.value, 0),
+      },
+      weekSeries: {
+        labels: weekLabels,
+        totals: weekTotals,
+        layaway: weekDataset.map((item) => item.layaway),
+        gold: weekDataset.map((item) => item.gold_buy),
+      },
     };
   }, [sales, goldBuys]);
 
-  const pendingLayaways = useMemo(() => {
-    return layaways
-      .filter((entry) => entry.status !== "paid" && (entry.balanceAmount ?? 0) > 0)
-      .sort((a, b) => (b.balanceAmount ?? 0) - (a.balanceAmount ?? 0))
-      .slice(0, 5);
-  }, [layaways]);
+  const dashboardMetrics = useMemo(() => {
+    const totalRevenue = sales.reduce((sum, sale) => sum + (sale.total ?? 0), 0);
+    const paidSales = sales.filter((sale) => sale.status === "paid" || sale.balanceAmount === 0);
+    const pendingLayaways = layaways.filter(
+      (entry) => entry.status !== "paid" && (entry.balanceAmount ?? 0) > 0
+    );
+    const totalLayawayBalance = pendingLayaways.reduce(
+      (sum, entry) => sum + (entry.balanceAmount ?? 0),
+      0
+    );
+    const goldPayout = goldBuys.reduce((sum, ticket) => sum + (ticket.totals?.payout ?? 0), 0);
+    const sevenDayAverage = aggregated.weekSeries.totals.length
+      ? aggregated.weekSeries.totals.reduce((sum, value) => sum + value, 0) /
+        aggregated.weekSeries.totals.length
+      : 0;
+    const goldAverage = aggregated.weekSeries.gold.length
+      ? aggregated.weekSeries.gold.reduce((sum, value) => sum + value, 0) /
+        aggregated.weekSeries.gold.length
+      : 0;
+
+    return [
+      {
+        label: "Total Today Sales",
+        value: currency(aggregated.today.total),
+        helper: `7-day avg ${currency(sevenDayAverage)}`,
+        tone: "primary" as const,
+        sparkline: {
+          data: aggregated.weekSeries.totals,
+          labels: aggregated.weekSeries.labels,
+        },
+      },
+      {
+        label: "Total Revenue",
+        value: currency(totalRevenue),
+        helper: `${paidSales.length} fulfilled sales`,
+        tone: "success" as const,
+        sparkline: {
+          data: aggregated.weekSeries.totals,
+          labels: aggregated.weekSeries.labels,
+        },
+      },
+      {
+        label: "Total Layaway Balance",
+        value: currency(totalLayawayBalance),
+        helper: `${pendingLayaways.length} open layaways`,
+        tone: "warning" as const,
+        sparkline: {
+          data: aggregated.weekSeries.layaway,
+          labels: aggregated.weekSeries.labels,
+        },
+      },
+      {
+        label: "Gold Buy Exposure",
+        value: currency(goldPayout),
+        helper: `${goldBuys.length} tickets`,
+        tone: "secondary" as const,
+        sparkline: {
+          data: aggregated.weekSeries.gold,
+          labels: aggregated.weekSeries.labels,
+        },
+        emptyFallback: goldAverage === 0 ? "No activity in the past week." : undefined,
+      },
+    ];
+  }, [aggregated, sales, layaways, goldBuys]);
 
   return (
     <Box
@@ -257,18 +286,12 @@ export default function AdminDashboardPage() {
     >
       <SummaryCards metrics={dashboardMetrics} />
 
-      <Box
-        display="grid"
-        gridTemplateColumns={{ xs: "1fr", lg: "2fr 1fr" }}
-        gap={3}
-      >
+      <Box display="grid" gridTemplateColumns={{ xs: "1fr", lg: "2fr 1fr" }} gap={3}>
         <SalesTrendChart datasets={aggregated.trend} />
         <Box display="grid" gap={3}>
-          <TodaySalesDonutChart data={aggregated.today} />
+          <TodaySalesDonutChart data={aggregated.today.segments} />
         </Box>
       </Box>
-
-      <PendingLayawayTable layaways={pendingLayaways} />
 
       <Snackbar
         open={snackOpen}

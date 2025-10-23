@@ -6,7 +6,17 @@ interface JwtPayload {
   exp: number;
 }
 
-let logoutTimer: NodeJS.Timeout | null = null;
+let logoutTimer: ReturnType<typeof setTimeout> | null = null;
+
+const isElectron = typeof navigator !== "undefined" && navigator.userAgent.toLowerCase().includes("electron");
+
+export const redirectToLogin = () => {
+  if (isElectron) {
+    window.location.hash = "#/login";
+  } else {
+    window.location.replace("/login");
+  }
+};
 
 export function setupAutoLogout(token: string) {
   try {
@@ -16,16 +26,19 @@ export function setupAutoLogout(token: string) {
 
     if (logoutTimer) clearTimeout(logoutTimer);
 
-    if (timeout > 0) {
-      logoutTimer = setTimeout(() => {
-        store.dispatch(logout());
-        window.location.hash = "#/login";
-      }, timeout);
-
-      console.log(`⏳ Auto-logout scheduled in ${(timeout / 1000).toFixed(0)}s`);
+    if (timeout <= 0) {
+      store.dispatch(logout());
+      redirectToLogin();
+      return;
     }
+
+    logoutTimer = setTimeout(() => {
+      store.dispatch(logout());
+      redirectToLogin();
+    }, timeout);
   } catch (error) {
-    console.error("Failed to decode token for auto logout", error);
+    store.dispatch(logout());
+    redirectToLogin();
   }
 }
 

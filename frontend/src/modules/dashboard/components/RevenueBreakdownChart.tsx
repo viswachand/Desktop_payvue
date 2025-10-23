@@ -1,5 +1,11 @@
 import { memo, useEffect, useState, type ComponentType } from "react";
-import { Box, Typography, ToggleButtonGroup, ToggleButton, useTheme } from "@mui/material";
+import {
+  Box,
+  Typography,
+  ToggleButtonGroup,
+  ToggleButton,
+  useTheme,
+} from "@mui/material";
 
 interface RevenueDatum {
   label: string;
@@ -18,24 +24,27 @@ function RevenueBreakdownChartComponent({ datasets }: RevenueBreakdownChartProps
   const [BarChartComponent, setBarChartComponent] = useState<ComponentType<any> | null>(null);
   const [view, setView] = useState<"week" | "month">("week");
   const dataset = view === "week" ? datasets.week : datasets.month;
-
-  useEffect(() => {
-    let active = true;
-    import("@mui/x-charts")
-      .then((module: { BarChart?: ComponentType<any> }) => {
-        if (active && module.BarChart) {
-          setBarChartComponent(() => module.BarChart!);
-        }
-      })
-      .catch(() => {
-        if (active) setBarChartComponent(null);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
   const hasData = dataset.some((entry) => entry.value > 0);
+
+
+useEffect(() => {
+  let active = true;
+
+  (async () => {
+    try {
+      const mod = await import("@mui/x-charts/BarChart");
+      if (active && mod.BarChart) {
+        setBarChartComponent(() => mod.BarChart);
+      }
+    } catch {
+      if (active) setBarChartComponent(null);
+    }
+  })();
+
+  return () => {
+    active = false;
+  };
+}, []);
 
   return (
     <Box
@@ -55,9 +64,7 @@ function RevenueBreakdownChartComponent({ datasets }: RevenueBreakdownChartProps
           size="small"
           exclusive
           value={view}
-          onChange={(_, next) => {
-            if (next) setView(next);
-          }}
+          onChange={(_, next) => next && setView(next)}
         >
           <ToggleButton value="week">Week</ToggleButton>
           <ToggleButton value="month">Month</ToggleButton>
@@ -73,12 +80,7 @@ function RevenueBreakdownChartComponent({ datasets }: RevenueBreakdownChartProps
           margin={{ top: 20, right: 20, bottom: 40, left: 50 }}
         />
       ) : (
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          height={320}
-        >
+        <Box display="flex" justifyContent="center" alignItems="center" height={320}>
           <Typography variant="body2" color="text.secondary">
             Charts unavailable or no revenue recorded in the selected range.
           </Typography>

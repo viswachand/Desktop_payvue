@@ -41,12 +41,11 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
             justifyContent: "center",
           }}
         >
+          {/* ✅ Removed invalid cast, use direct props */}
           <Box
             component="img"
-            {...({
-              src: logo,
-              alt: "Logo",
-            } as React.ComponentProps<"img">)}
+            src={logo}
+            alt="Logo"
             sx={{
               width: "100%",
               maxWidth: 300,

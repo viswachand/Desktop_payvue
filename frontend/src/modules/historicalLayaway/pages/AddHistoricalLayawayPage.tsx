@@ -1,11 +1,5 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Grid,
-  Typography,
-  Snackbar,
-  useTheme,
-} from "@/components/common";
+import { Box, Typography, Snackbar, useTheme, Button, Stack } from "@/components/common";
 import { CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import HistoricalLayawayForm from "../components/HistoricalLayawayForm";
@@ -46,14 +40,36 @@ export default function AddHistoricalLayawayPage() {
   return (
     <Box
       sx={{
-        p: 5,
+        px: { xs: 2, md: 4 },
+        py: { xs: 3, md: 5 },
         backgroundColor: theme.palette.background.default,
         minHeight: "100vh",
       }}
     >
-      <Typography variant="h5" fontWeight={700} gutterBottom>
-        Historical Layaway Management
-      </Typography>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        gap={2}
+        justifyContent="space-between"
+        alignItems={{ xs: "flex-start", sm: "center" }}
+        mb={3}
+      >
+        <Box>
+          <Typography variant="h4" fontWeight={700}>
+            Historical Layaway
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Record legacy layaway details, items, and payment history in one place.
+          </Typography>
+        </Box>
+        <Button
+          variant="outlined"
+          color="inherit"
+          onClick={() => navigate(-1)}
+          sx={{ textTransform: "none" }}
+        >
+          Back
+        </Button>
+      </Stack>
 
       <Snackbar
         open={Boolean(error) || snack.open}
@@ -66,23 +82,16 @@ export default function AddHistoricalLayawayPage() {
 
       <Box
         sx={{
-          p: 3,
-          mt: 2,
+          px: { xs: 2, md: 4 },
+          py: { xs: 3, md: 4 },
+          mt: 1,
           backgroundColor: theme.palette.background.paper,
-          borderTop: `1px solid ${theme.palette.divider}`,
-          borderLeft: `1px solid ${theme.palette.divider}`,
-          borderRight: `1px solid ${theme.palette.divider}`,
-          borderBottom: "none",
-          borderTopLeftRadius: theme.shape.borderRadius,
-          borderTopRightRadius: theme.shape.borderRadius,
-        }}
-      >
-        <Grid container spacing={2} alignItems="center">
-          <Grid size={{ xs: 12 }}>
-            <HistoricalLayawayForm
-            />
-          </Grid>
-        </Grid>
+          borderRadius: 3,
+          border: `1px solid ${theme.palette.divider}`,
+          boxShadow: theme.customShadows?.card,
+      }}
+    >
+        <HistoricalLayawayForm onCancel={() => navigate(-1)} />
       </Box>
     </Box>
   );

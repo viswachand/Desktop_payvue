@@ -11,6 +11,7 @@ import layawayReducer from "@/features/layaway/layawaySlice";
 import categoriesReducer from "@/features/category/category"
 import reportsReducer from "@/features/reports/reportSlice";
 import userReducer from "@/features/user/userSlice";
+import goldBuyReducer from "@/features/goldBuy/goldSlice";
 
 export const store = configureStore({
     reducer: {
@@ -26,6 +27,7 @@ export const store = configureStore({
         categories:categoriesReducer,
         reports:reportsReducer,
         users:userReducer,
+        goldBuy: goldBuyReducer,
     },
 });
 

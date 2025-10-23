@@ -1,5 +1,5 @@
 // app.ts
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import cors from "cors";
 import userRoutes from "./routes/userRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
@@ -21,7 +21,7 @@ app.set("trust proxy", 1);
 app.use(express.json());
 
 // ----------------------------------
-// ✅ CORS Configuration
+// CORS Configuration
 // ----------------------------------
 const allowedOrigins = [
     "http://localhost:5173", // Vite frontend (dev)
@@ -57,7 +57,7 @@ app.use("/api/goldBuy", goldBuy);
 app.use("/api/reports", reportRoutes);
 
 // ----------------------------------
-// ✅ Error Handler (global)
+// Error Handler (global)
 // ----------------------------------
 app.use(errorHandler);
 

@@ -1,15 +1,6 @@
 import React, { useState, useMemo } from "react";
-import {
-  Grid,
-  TextField,
-  Typography,
-  Divider,
-  Button,
-  Card,
-  useTheme,
-  Select,
-} from "@/components/common";
-import { CardContent } from "@mui/material";
+import { Grid, TextField, Typography, Button, Card, useTheme, Select, Stack } from "@/components/common";
+import { CardContent, CardHeader, Divider } from "@mui/material";
 import HistoricalItemsTable from "./HistoricalItemsTable";
 import HistoricalPaymentsTable from "./HistoricalPaymentsTable";
 import SummaryCard from "./SummaryCard";
@@ -19,7 +10,11 @@ import { AppDispatch } from "@/app/store";
 import { createHistoricalLayaway } from "@/features/layaway/layawaySlice";
 import { formatPhoneNumber } from "@/utils/formatPhoneNumber";
 
-export default function HistoricalLayawayForm() {
+interface HistoricalLayawayFormProps {
+  onCancel?: () => void;
+}
+
+export default function HistoricalLayawayForm({ onCancel }: HistoricalLayawayFormProps) {
   const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
 
@@ -43,7 +38,6 @@ export default function HistoricalLayawayForm() {
     installments: [],
   });
 
-  // 🧮 Compute totals
   const subtotal = useMemo(() => {
     return (
       form.items?.reduce(
@@ -76,12 +70,10 @@ export default function HistoricalLayawayForm() {
   const total = subtotal + tax - discountTotal;
   const balance = Math.max(total - totalPaid, 0);
 
-  // 🔄 Handle state change
   const handleChange = (field: string, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  // 💾 Submit with computed fields
   const handleSubmit = async () => {
     if (totalPaid > total) {
       alert("Total payments cannot exceed total sale amount.");
@@ -101,171 +93,190 @@ export default function HistoricalLayawayForm() {
     await dispatch(createHistoricalLayaway(payload));
   };
 
-  // 🎨 Card style (light/dark mode)
   const cardStyle = {
-    bgcolor:
-      theme.palette.mode === "light"
-        ? theme.palette.grey[50]
-        : theme.palette.background.paper,
-    borderRadius: 2,
+    borderRadius: 3,
     boxShadow: "none",
     border: `1px solid ${theme.palette.divider}`,
+    backgroundColor: theme.palette.background.paper,
   };
+
+  const customerFields = [
+    { key: "firstName", label: "First Name" },
+    { key: "lastName", label: "Last Name" },
+    { key: "phone", label: "Phone" },
+    { key: "email", label: "Email" },
+    { key: "city", label: "City" },
+    { key: "state", label: "State" },
+    { key: "address1", label: "Address 1" },
+    { key: "address2", label: "Address 2" },
+  ];
 
   return (
     <Grid container spacing={3}>
-      {/* 🧍 Customer Information */}
-      <Grid size={{ xs: 12, md: 6 }}>
-        <Card sx={cardStyle}>
-          <CardContent>
-            <Typography variant="h6" fontWeight={600} gutterBottom>
-              Customer Information
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
+      <Grid size={{ xs: 12, lg: 8 }}>
+        <Stack spacing={3}>
+          <Card sx={cardStyle}>
+            <CardHeader
+              titleTypographyProps={{ variant: "h6", fontWeight: 600 }}
+              title="Customer Information"
+            />
+            <Divider />
+            <CardContent sx={{ pt: 3 }}>
+              <Grid container spacing={2.5}>
+                {customerFields.map((field) => (
+                  <Grid size={{ xs: 12, sm: 6 }} key={field.key}>
+                    <TextField
+                      label={field.label}
+                      value={(form.customerInformation as any)[field.key] || ""}
+                      onChange={(e) => {
+                        const value =
+                          field.key === "phone"
+                            ? formatPhoneNumber(e.target.value)
+                            : e.target.value;
+                        handleChange("customerInformation", {
+                          ...form.customerInformation,
+                          [field.key]: value,
+                        });
+                      }}
+                      fullWidth
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            </CardContent>
+          </Card>
 
-            <Grid container spacing={2}>
-              {[
-                { key: "firstName", label: "First Name" },
-                { key: "lastName", label: "Last Name" },
-                { key: "phone", label: "Phone" },
-                { key: "email", label: "Email" },
-                { key: "city", label: "City" },
-                { key: "state", label: "State" },
-                { key: "address1", label: "Address 1" },
-                { key: "address2", label: "Address 2" },
-              ].map((field) => (
-                <Grid size={6} key={field.key}>
+          <Card sx={cardStyle}>
+            <CardHeader
+              titleTypographyProps={{ variant: "h6", fontWeight: 600 }}
+              title="Sale Details"
+            />
+            <Divider />
+            <CardContent sx={{ pt: 3 }}>
+              <Grid container spacing={2.5}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Select
+                    label="Sale Type"
+                    value={form.saleType}
+                    onChange={(e) => handleChange("saleType", e.target.value)}
+                    options={[
+                      { value: "", label: "Select Sale Type" },
+                      { value: "inventory", label: "Inventory" },
+                      { value: "custom", label: "Custom" },
+                      { value: "service", label: "Service" },
+                      { value: "repair", label: "Repair" },
+                    ]}
+                    fullWidth
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
-                    label={field.label}
-                    value={(form.customerInformation as any)[field.key] || ""}
-                    onChange={(e) => {
-                      const value =
-                        field.key === "phone"
-                          ? formatPhoneNumber(e.target.value)
-                          : e.target.value;
-                      handleChange("customerInformation", {
-                        ...form.customerInformation,
-                        [field.key]: value,
-                      });
+                    label="Sale Date"
+                    type="date"
+                    value={form.saleDate}
+                    onChange={(e) => handleChange("saleDate", e.target.value)}
+                    slotProps={{
+                      inputLabel: { shrink: true },
                     }}
                     fullWidth
                   />
                 </Grid>
-              ))}
-            </Grid>
-          </CardContent>
-        </Card>
-      </Grid>
 
-      {/* 🧾 Sale Details */}
-      <Grid size={{ xs: 12, md: 6 }}>
-        <Card sx={cardStyle}>
-          <CardContent>
-            <Typography variant="h6" fontWeight={600} gutterBottom>
-              Sale Details
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
+                <Grid size={{ xs: 12 }}>
+                  <PolicySelect
+                    value={form.policyTitle}
+                    onChange={(policy) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        policyTitle: policy.title,
+                        policyDescription: policy.description,
+                      }))
+                    }
+                  />
+                </Grid>
 
-            <Grid container spacing={2}>
-              <Grid size={6}>
-                <Select
-                  label="Sale Type"
-                  value={form.saleType}
-                  onChange={(e) => handleChange("saleType", e.target.value)}
-                  options={[
-                    { value: "", label: "Select Sale Type" },
-                    { value: "inventory", label: "Inventory" },
-                    { value: "custom", label: "Custom" },
-                    { value: "service", label: "Service" },
-                    { value: "repair", label: "Repair" },
-                  ]}
-                  fullWidth
-                />
+                <Grid size={{ xs: 12 }}>
+                  <TextField
+                    label="Comment"
+                    multiline
+                    rows={3}
+                    value={form.comment}
+                    onChange={(e) => handleChange("comment", e.target.value)}
+                    fullWidth
+                  />
+                </Grid>
               </Grid>
+            </CardContent>
+          </Card>
 
-              <Grid size={6}>
-                <TextField
-                  label="Sale Date"
-                  type="date"
-                  value={form.saleDate}
-                  onChange={(e) => handleChange("saleDate", e.target.value)}
-                  slotProps={{
-                    inputLabel: { shrink: true },
-                  }}
-                  fullWidth
-                />
-              </Grid>
+          <Card sx={cardStyle}>
+            <CardHeader
+              titleTypographyProps={{ variant: "h6", fontWeight: 600 }}
+              title="Items"
+            />
+            <Divider />
+            <CardContent sx={{ p: 0 }}>
+              <HistoricalItemsTable
+                items={form.items}
+                onChange={(items) => handleChange("items", items)}
+              />
+            </CardContent>
+          </Card>
 
-              {/* ✅ Policy select now returns description too */}
-              <Grid size={12}>
-                <PolicySelect
-                  value={form.policyTitle}
-                  onChange={(policy) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      policyTitle: policy.title,
-                      policyDescription: policy.description,
-                    }))
-                  }
-                />
-              </Grid>
-
-              <Grid size={12}>
-                <TextField
-                  label="Comment"
-                  multiline
-                  rows={3}
-                  value={form.comment}
-                  onChange={(e) => handleChange("comment", e.target.value)}
-                  fullWidth
-                />
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
+          <Card sx={cardStyle}>
+            <CardHeader
+              titleTypographyProps={{ variant: "h6", fontWeight: 600 }}
+              title="Payments"
+            />
+            <Divider />
+            <CardContent sx={{ p: 0 }}>
+              <HistoricalPaymentsTable
+                installments={form.installments}
+                onChange={(installments) => handleChange("installments", installments)}
+                totalAmount={total}
+              />
+            </CardContent>
+          </Card>
+        </Stack>
       </Grid>
 
-      {/* 📦 Items + 💰 Payments */}
-      <Grid size={{ xs: 12, md: 6 }} mt={2}>
-        <Divider sx={{ mb: 1 }} />
-        <HistoricalItemsTable
-          items={form.items}
-          onChange={(items) => handleChange("items", items)}
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12, md: 6 }} mt={2}>
-        <Divider sx={{ mb: 1 }} />
-        <HistoricalPaymentsTable
-          installments={form.installments}
-          onChange={(installments) =>
-            handleChange("installments", installments)
-          }
-          totalAmount={total}
-        />
-      </Grid>
-
-      {/* 💰 Summary */}
-      <Grid size={12} mt={3}>
-        <SummaryCard
-          form={{
-            ...form,
-            subtotal,
-            tax,
-            discountTotal,
-            total,
-            paidAmount: totalPaid,
-            balance,
-          }}
-        />
-      </Grid>
-
-      {/* Footer Buttons */}
-      <Grid size={12} display="flex" justifyContent="flex-end" gap={2}>
-        <Button variant="outlined">Cancel</Button>
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
-          Save Historical Layaway
-        </Button>
+      <Grid size={{ xs: 12, lg: 4 }}>
+        <Stack spacing={3} sx={{ position: { lg: "sticky" }, top: { lg: 32 } }}>
+          <SummaryCard
+            totals={{
+              subtotal,
+              tax,
+              discountTotal,
+              total,
+              paidAmount: totalPaid,
+              balance,
+            }}
+          />
+          <Card sx={cardStyle}>
+            <CardContent>
+              <Typography variant="subtitle1" fontWeight={600}>
+                Policy Details
+              </Typography>
+              <Typography variant="body2" color="text.secondary" mt={1.5}>
+                {form.policyDescription || "Select a policy to view the linked terms."}
+              </Typography>
+            </CardContent>
+          </Card>
+          <Stack direction="column" spacing={1.5}>
+            <Button variant="outlined" color="inherit" onClick={onCancel} sx={{ textTransform: "none" }}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+              sx={{ textTransform: "none" }}
+            >
+              Save Historical Layaway
+            </Button>
+          </Stack>
+        </Stack>
       </Grid>
     </Grid>
   );

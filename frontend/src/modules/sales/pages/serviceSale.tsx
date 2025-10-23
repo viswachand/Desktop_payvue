@@ -65,7 +65,7 @@ export default function ServiceSale() {
     }
 
     if (isEditing && editingItem) {
-      const updatedService: CartItem = {
+      const updatedService = {
         ...editingItem,
         itemType: serviceType,
         itemName:
@@ -77,8 +77,9 @@ export default function ServiceSale() {
         itemDescription: `Service Type: ${serviceType}, Receive Date: ${receiveDate}`,
         costPrice: numericAmount,
         qty: editingItem.qty ?? 1,
-        receiveDate,
-      };
+      } as CartItem;
+
+      (updatedService as any).receiveDate = receiveDate;
 
       dispatch(updateCartItem(updatedService));
       setSnackSeverity("success");
@@ -106,8 +107,9 @@ export default function ServiceSale() {
       qty: 1,
       itemType: serviceType,
       taxApplied: false,
-      receiveDate,
-    };
+    } as CartItem;
+
+    (newService as any).receiveDate = receiveDate;
 
     dispatch(addToCart(newService));
 

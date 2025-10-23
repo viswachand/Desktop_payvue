@@ -69,23 +69,29 @@ export default function CustomSale() {
   const initialValues = useMemo<CustomFormValues>(() => {
     if (!editingItem) return createDefaultValues();
 
+    const editingDetails = editingItem as unknown as Record<string, unknown>;
+
     return {
       itemName: editingItem.itemName ?? "",
       description: editingItem.itemDescription ?? "",
-      material: (editingItem as any).material ?? "",
+      material: (editingDetails.material as string) ?? "",
       weight:
-        editingItem.weight !== undefined ? String(editingItem.weight) : "",
+        editingDetails.weight !== undefined
+          ? String(editingDetails.weight)
+          : "",
       goldPrice:
-        editingItem.goldPrice !== undefined ? String(editingItem.goldPrice) : "",
+        editingDetails.goldPrice !== undefined
+          ? String(editingDetails.goldPrice)
+          : "",
       makingCharge:
-        editingItem.makingCharge !== undefined
-          ? String(editingItem.makingCharge)
+        editingDetails.makingCharge !== undefined
+          ? String(editingDetails.makingCharge)
           : "",
       laborCharge:
-        editingItem.laborCharge !== undefined
-          ? String(editingItem.laborCharge)
+        editingDetails.laborCharge !== undefined
+          ? String(editingDetails.laborCharge)
           : "",
-      deliveryDate: (editingItem as any).deliveryDate ?? "",
+      deliveryDate: (editingDetails.deliveryDate as string) ?? "",
     };
   }, [editingItem]);
 
@@ -121,11 +127,11 @@ export default function CustomSale() {
       };
 
       if (isEditing && editingItem) {
-        const updatedItem: CartItem = {
+        const updatedItem = {
           ...editingItem,
           ...baseItem,
           qty: editingItem.qty ?? 1,
-        };
+        } as CartItem;
 
         dispatch(updateCartItem(updatedItem));
         setSnackSeverity("success");
@@ -141,7 +147,7 @@ export default function CustomSale() {
         id: Date.now().toString(),
         ...baseItem,
         qty: 1,
-      };
+      } as CartItem;
 
       dispatch(addToCart(newCustomItem));
 

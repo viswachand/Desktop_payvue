@@ -6,6 +6,8 @@ import { saleRoutes } from "@/modules/sales";
 import { InventoryRoutes } from "@/modules/inventory";
 import { reportsRoutes } from "@/modules/reports";
 import { userRoutes } from "@/modules/user";
+import { goldBuyRoutes } from "@/modules/goldBuy";
+import { dashboardRoutes } from "@/modules/dashboard";
 import PrivateRoute from "@/routes/PrivateRoute";
 import AdminRoute from "@/routes/AdminRoute";
 import PublicRoute from "@/routes/PublicRoute";
@@ -18,7 +20,6 @@ interface AppProps {
 }
 
 const Login = lazy(() => import("@/page/Login"));
-const Dashboard = lazy(() => import("@/page/Dashboard"));
 const SuccessScreen = lazy(() => import("@/page/PaymentSuccessPage"));
 const AdminScreen = lazy(() => import("@/page/Admin"));
 const PoliciesScreen = lazy(() => import("@/page/PoliciesPage"));
@@ -45,12 +46,14 @@ export default function App({ toggleTheme, currentMode }: AppProps) {
           <Route path="/login" element={<Login />} />
         </Route>
         <Route element={<PrivateRoute />}>
-          <Route
-            element={
-              <AppLayout toggleTheme={toggleTheme} currentMode={currentMode} />
-            }
-          >
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              element={
+                <AppLayout toggleTheme={toggleTheme} currentMode={currentMode} />
+              }
+            >
+            {dashboardRoutes.map((r) => (
+              <Route key={r.path} path={r.path} element={r.element} />
+            ))}
             {saleRoutes.map((r) => (
               <Route key={r.path} path={r.path} element={r.element} />
             ))}
@@ -58,6 +61,9 @@ export default function App({ toggleTheme, currentMode }: AppProps) {
               <Route key={r.path} path={r.path} element={r.element} />
             ))}
             {InventoryRoutes.map((r) => (
+              <Route key={r.path} path={r.path} element={r.element} />
+            ))}
+            {goldBuyRoutes.map((r) => (
               <Route key={r.path} path={r.path} element={r.element} />
             ))}
             <Route element={<AdminRoute />}>

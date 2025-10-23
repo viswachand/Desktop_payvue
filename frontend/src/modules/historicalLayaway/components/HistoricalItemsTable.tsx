@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Box, Button, TextField, useTheme, Select } from "@/components/common";
+import { Box, Button, TextField, useTheme, Select, Stack, Typography } from "@/components/common";
 import {
   Dialog,
   DialogTitle,
@@ -93,12 +93,22 @@ export default function HistoricalItemsTable({ items, onChange }: Props) {
   };
 
   return (
-    <Box sx={{ width: "100%" }}>
-      {/* DataGrid */}
+    <Box sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
+      <Stack direction="row" justifyContent="flex-end" mb={2}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setOpen(true)}
+          sx={{ textTransform: "none" }}
+        >
+          Add Item
+        </Button>
+      </Stack>
+
       <Box
         sx={{
           width: "100%",
-          height: 400,
+          height: 360,
           "& .MuiDataGrid-root": { width: "100%" },
           "& .MuiDataGrid-columnHeaders": {
             backgroundColor: theme.palette.grey[100],
@@ -117,32 +127,26 @@ export default function HistoricalItemsTable({ items, onChange }: Props) {
             pagination: { paginationModel: { pageSize: 5 } },
           }}
           pageSizeOptions={[5, 10]}
-          rowHeight={70}
-          density="compact"
+          rowHeight={64}
+          density="comfortable"
           sx={{ width: "100%" }}
         />
       </Box>
 
-      {/* Display total */}
       <Box
         display="flex"
         justifyContent="space-between"
         alignItems="center"
-        mt={2}
+        mt={3}
       >
-        <Box fontWeight={600}>
-          Total Amount:{" "}
-          <Box component="span" color={theme.palette.primary.main}>
-            ${totalAmount.toFixed(2)}
-          </Box>
-        </Box>
-
-        <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
-          + Add Item
-        </Button>
+        <Typography variant="body2" color="text.secondary">
+          {rows.length} {rows.length === 1 ? "item" : "items"}
+        </Typography>
+        <Typography variant="subtitle1" fontWeight={700}>
+          ${totalAmount.toFixed(2)}
+        </Typography>
       </Box>
 
-      {/* Add Item Dialog */}
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Add Historical Item</DialogTitle>
         <DialogContent dividers>
@@ -154,7 +158,6 @@ export default function HistoricalItemsTable({ items, onChange }: Props) {
               fullWidth
             />
 
-            {/* ✅ Fixed Type Select */}
             <Select
               label="Item Type"
               value={newItem.type}

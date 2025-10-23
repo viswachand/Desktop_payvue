@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Box, Typography, Snackbar, useTheme } from "@/components/common";
 import { CircularProgress } from "@mui/material";
 import type { AppDispatch } from "@/app/store";
-import type { Sale } from "@payvue/shared/types/sale";
 import {
   fetchSalesReport,
   deleteSaleFromReport,
@@ -20,12 +19,13 @@ export default function SalesReportPage() {
   const theme = useTheme();
 
   const [filters, setFilters] = useState({
-    saleType: "",
-    status: "",
+    saleType: "all",
+    status: "all",
     search: "",
     fromDate: "",
     toDate: "",
   });
+  const [appliedFilters, setAppliedFilters] = useState(filters);
 
   const [snack, setSnack] = useState({
     open: false,
@@ -38,7 +38,7 @@ export default function SalesReportPage() {
   }, [dispatch]);
 
   const handleApplyFilters = () => {
-    dispatch(fetchSalesReport(filters));
+    setAppliedFilters(filters);
   };
 
   const handleDelete = async (id: string) => {
@@ -58,6 +58,31 @@ export default function SalesReportPage() {
     }
   };
 
+  const filteredRows = React.useMemo(() => {
+    const normalize = (value: string) => value.trim().toLowerCase();
+    const searchTerm = normalize(appliedFilters.search);
+    return reports.filter((sale) => {
+      if (appliedFilters.saleType !== "all" && sale.saleType !== appliedFilters.saleType) {
+        return false;
+      }
+      if (appliedFilters.status !== "all" && sale.status !== appliedFilters.status) {
+        return false;
+      }
+      if (appliedFilters.fromDate && sale.createdAt && new Date(sale.createdAt) < new Date(appliedFilters.fromDate)) {
+        return false;
+      }
+      if (appliedFilters.toDate && sale.createdAt && new Date(sale.createdAt) > new Date(appliedFilters.toDate)) {
+        return false;
+      }
+      if (!searchTerm) return true;
+      const invoiceMatch = sale.invoiceNumber?.toLowerCase().includes(searchTerm);
+      const name = `${sale.customerInformation?.firstName ?? ""} ${sale.customerInformation?.lastName ?? ""}`.toLowerCase();
+      const customerMatch = name.includes(searchTerm);
+      const phoneMatch = sale.customerInformation?.phone?.toLowerCase().includes(searchTerm);
+      return invoiceMatch || customerMatch || phoneMatch;
+    });
+  }, [reports, appliedFilters]);
+
   if (loading)
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
@@ -71,17 +96,14 @@ export default function SalesReportPage() {
         Sales Reports
       </Typography>
 
-      {/* Filters */}
       <ReportFilters
         filters={filters}
         onChange={setFilters}
         onApply={handleApplyFilters}
       />
 
-      {/* Table */}
-      <ReportTable rows={reports} onDelete={handleDelete} />
+      <ReportTable rows={filteredRows} onDelete={handleDelete} />
 
-      {/* Snackbar */}
       <Snackbar
         open={snack.open}
         onClose={() => setSnack({ ...snack, open: false })}

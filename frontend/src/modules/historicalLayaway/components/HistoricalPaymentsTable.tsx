@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Box, Button, TextField, useTheme, Select } from "@/components/common";
+import { Box, Button, TextField, useTheme, Select, Stack, Typography } from "@/components/common";
 import {
   Dialog,
   DialogTitle,
@@ -18,7 +18,7 @@ interface Installment {
 interface Props {
   installments: Installment[];
   onChange: (updated: Installment[]) => void;
-  totalAmount: number; // ✅ total from items table
+  totalAmount: number;
 }
 
 export default function HistoricalPaymentsTable({
@@ -102,12 +102,25 @@ export default function HistoricalPaymentsTable({
   };
 
   return (
-    <Box sx={{ width: "100%" }}>
-      {/* DataGrid */}
+    <Box sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="body2" color="text.secondary">
+          Payments cannot exceed the sale total of ${totalAmount.toFixed(2)}.
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setOpen(true)}
+          sx={{ textTransform: "none" }}
+        >
+          Add Payment
+        </Button>
+      </Stack>
+
       <Box
         sx={{
           width: "100%",
-          height: 400,
+          height: 360,
           "& .MuiDataGrid-root": { width: "100%" },
           "& .MuiDataGrid-columnHeaders": {
             backgroundColor: theme.palette.grey[100],
@@ -124,24 +137,25 @@ export default function HistoricalPaymentsTable({
           disableRowSelectionOnClick
           hideFooterSelectedRowCount
           disableColumnMenu
-           initialState={{
-          pagination: { paginationModel: { pageSize: 10 } },
-        }}
-        pageSizeOptions={[10, 25, 50]}
-          rowHeight={70}
-          density="compact"
+          initialState={{
+            pagination: { paginationModel: { pageSize: 10 } },
+          }}
+          pageSizeOptions={[10, 25, 50]}
+          rowHeight={64}
+          density="comfortable"
           sx={{ width: "100%" }}
         />
       </Box>
 
-      {/* Add Payment Button */}
-      <Box display="flex" justifyContent="flex-end" mt={2} width="100%">
-        <Button variant="contained" color="primary" onClick={() => setOpen(true)}>
-          + Add Payment
-        </Button>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mt={3}>
+        <Typography variant="body2" color="text.secondary">
+          {rows.length} {rows.length === 1 ? "payment" : "payments"}
+        </Typography>
+        <Typography variant="subtitle1" fontWeight={700}>
+          Paid ${totalPaid.toFixed(2)}
+        </Typography>
       </Box>
 
-      {/* Add Payment Dialog */}
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Add Historical Payment</DialogTitle>
         <DialogContent dividers>

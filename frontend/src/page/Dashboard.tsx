@@ -1,24 +1,22 @@
-import React from "react";
-import { Box, Typography, Button } from "@/components/common";
-import AppHeader from "@/components/layout/Appheader";
+import { Suspense } from "react";
+import { CircularProgress, Box } from "@mui/material";
+import AdminDashboardPage from "@/modules/dashboard/pages/AdminDashboardPage";
 
-const Dashboard: React.FC = () => {
+export default function Dashboard() {
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100vh",
-        gap: 3,
-      }}
+    <Suspense
+      fallback={
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="100vh"
+        >
+          <CircularProgress />
+        </Box>
+      }
     >
-      <Typography variant="h4" fontWeight={600}>
-        Welcome to PayVue Dashboard 🚀
-      </Typography>
-    </Box>
+      <AdminDashboardPage />
+    </Suspense>
   );
-};
-
-export default Dashboard;
+}

@@ -1,14 +1,7 @@
-import {
-  Grid,
-  Box,
-  Button,
-  TextField,
-  Select,
-  useTheme,
-} from "@/components/common";
+import { Box, Button, TextField, Select, useTheme } from "@/components/common";
 import { InputAdornment } from "@mui/material";
 import { Search } from "@mui/icons-material";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface ReportFiltersProps {
   filters: {
@@ -18,7 +11,7 @@ interface ReportFiltersProps {
     fromDate: string;
     toDate: string;
   };
-  onChange: (filters: any) => void;
+  onChange: (filters: ReportFiltersProps["filters"]) => void;
   onApply: () => void;
 }
 
@@ -43,14 +36,6 @@ export default function ReportFilters({
     }
     onChange(updated);
   };
-
-  useEffect(() => {
-    const defaults = {
-      saleType: filters.saleType || "all",
-      status: filters.status || "all",
-    };
-    onChange({ ...filters, ...defaults });
-  }, []);
 
   return (
     <Box

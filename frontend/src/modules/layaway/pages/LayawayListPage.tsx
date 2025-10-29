@@ -152,7 +152,7 @@ const filteredLayaways = useMemo(() => {
           <TextField
             select
             size="small"
-            sx={{ flex: "1 1 200px", minWidth: 180 }}
+            sx={{ flex: "1 1 200px", minWidth: 80 }}
             value={filters.status}
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, status: e.target.value }))

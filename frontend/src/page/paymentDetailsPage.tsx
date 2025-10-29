@@ -16,7 +16,6 @@ import {
 } from "@/components/common";
 import {
   ArrowBack,
-  PrintRounded,
   AddCircleRounded,
   Person,
   ReceiptLongRounded,
@@ -123,26 +122,6 @@ export default function PaymentDetailsPage() {
             onClick={() => navigate(-1)}
           >
             Back
-          </Button>
-
-          {isLayaway && balanceAmount > 0 && (
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddCircleRounded />}
-              onClick={() => setAddDialogOpen(true)}
-            >
-              Add Payment
-            </Button>
-          )}
-
-          <Button
-            variant="contained"
-            color="secondary"
-            startIcon={<PrintRounded />}
-            onClick={() => window.print()}
-          >
-            Print
           </Button>
         </Box>
       </Box>

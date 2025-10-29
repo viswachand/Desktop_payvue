@@ -9,8 +9,11 @@
   "scripts": {
     "dev": "tsc -w & cross-env NODE_ENV=development electron .",
     "build": "tsc -p tsconfig.json",
-    "dist": "npm run build && electron-builder",
-    "package:all": "rm -rf ../release && cd ../frontend && npm run build && cd ../backend && npm run build && cd ../app &&  npm run dist"
+    "build:assets": "npm --prefix ../frontend install && npm --prefix ../frontend run build && npm --prefix ../backend install && npm --prefix ../backend run build && npm --prefix ../backend prune --omit=dev",
+    "dist": "npm run build:assets && npm run build && electron-builder --mac --win --x64",
+    "dist:mac": "rm -rf ../release && npm run build:assets && npm run build && electron-builder --mac",
+    "dist:win": "rm -rf ../release && npm run build:assets && npm run build && electron-builder --win --x64",
+    "package:all": "rm -rf ../release && npm run dist"
   },
 
   "dependencies": {
@@ -35,22 +38,28 @@
 
     "extraResources": [
       {
+        "from": "../frontend/dist",
+        "to": "frontend",
+        "filter": ["**/*"]
+      },
+      {
         "from": "../backend/dist",
-        "to": "backend"
+        "to": "backend",
+        "filter": ["**/*"]
       },
       {
         "from": "../backend/.env",
-        "to": "backend/.env"
+        "to": "backend/.env",
+        "filter": ["**/.env"]
       },
       {
-        "from": "../frontend/dist",
-        "to": "frontend"
+        "from": "../backend/node_modules",
+        "to": "backend/node_modules",
+        "filter": ["**/*"]
       }
     ],
 
-    "asarUnpack": [
-      "backend/**"
-    ],
+    "asarUnpack": [],
 
     "directories": {
       "output": "../release"
@@ -63,7 +72,12 @@
     },
 
     "win": {
-      "target": ["nsis"],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
       "icon": "assets/icon.ico"
     }
   }

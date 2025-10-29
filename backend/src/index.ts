@@ -1,8 +1,10 @@
+import path from "path";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db";
 import { app } from "./app";
 
-dotenv.config();
+const envPath = process.env.BACKEND_ENV_PATH || path.resolve(__dirname, "../.env");
+dotenv.config({ path: envPath });
 
 const PORT = process.env.PORT || 4000;
 

@@ -7,6 +7,7 @@ export interface User {
     employeeStartDate: Date;
     contactNumber?: string;
     status?: "active" | "inactive";
+    role?: string;
     isAdmin?: boolean;
     createdAt?: string;
     updatedAt?: string;

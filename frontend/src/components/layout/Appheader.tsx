@@ -10,13 +10,11 @@ import {
   Stack,
   useTheme,
 } from "@mui/material";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import { Box,Typography,Menu} from "../common";
-import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
+import { Box, Typography, Menu } from "../common";
 import WbSunnyRoundedIcon from "@mui/icons-material/WbSunnyRounded";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
-import { useDispatch } from "react-redux";
-import { logout } from "@/features/auth/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { logout, selectCurrentUser } from "@/features/auth/authSlice";
 import { redirectToLogin } from "@/utils/setupAutoLogout";
 
 interface AppHeaderProps {
@@ -31,6 +29,13 @@ export default function AppHeader({
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const dispatch = useDispatch();
+  const currentUser = useSelector(selectCurrentUser);
+  const avatarInitial =
+    currentUser?.firstName?.charAt(0)?.toUpperCase() ?? "M";
+  const roleLabel =
+    currentUser?.role ??
+    (currentUser ? (currentUser.isAdmin ? "Admin" : "Staff") : "Role");
+  const firstNameLabel = currentUser?.firstName ?? "";
 
   const handleLogout = () => {
     dispatch(logout());
@@ -55,7 +60,7 @@ export default function AppHeader({
         color: theme.palette.text.primary,
         borderBottom: `1px solid ${theme.palette.divider}`,
         zIndex: theme.zIndex.drawer + 1,
-        borderRadius: 0,
+        borderRadius: theme.shape.borderRadius,
       }}
     >
       <Toolbar
@@ -67,34 +72,16 @@ export default function AppHeader({
         }}
       >
         <Stack direction="row" alignItems="center" spacing={1}>
-          {/* <Box
-            component="img"
-            src="/logo.svg"
-            alt="PayVue Logo"
-            sx={{ height: 32, width: 32 }}
-          /> */}
           <Typography
             variant="h6"
             sx={{ fontWeight: 600, color: theme.palette.text.primary }}
           >
-            PayVue
+           A - 1 JEWELERS
           </Typography>
         </Stack>
 
         {/* Right: Actions */}
         <Stack direction="row" alignItems="center" spacing={1}>
-          <Tooltip title="Help">
-            <IconButton color="inherit" size="large">
-              <HelpOutlineIcon />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Notifications">
-            <IconButton color="inherit" size="large">
-              <NotificationsNoneIcon />
-            </IconButton>
-          </Tooltip>
-
           <Tooltip title="Toggle Theme">
             <IconButton onClick={toggleTheme} color="inherit" size="large">
               {currentMode === "light" ? (
@@ -105,9 +92,9 @@ export default function AppHeader({
             </IconButton>
           </Tooltip>
 
-          {/* Manager Menu */}
+          {/* User Menu */}
           <Box>
-            <Tooltip title="Manager Menu">
+            <Tooltip title={currentUser?.username ?? "User Menu"}>
               <IconButton onClick={handleMenuOpen} size="small" sx={{ ml: 1 }}>
                 <Avatar
                   sx={{
@@ -117,7 +104,7 @@ export default function AppHeader({
                     fontSize: 14,
                   }}
                 >
-                  M
+                  {avatarInitial}
                 </Avatar>
               </IconButton>
             </Tooltip>
@@ -135,15 +122,16 @@ export default function AppHeader({
                 },
               }}
             >
-              <Typography
-                variant="subtitle2"
-                sx={{ px: 2, pt: 1, pb: 0.5, color: "text.secondary" }}
-              >
-                Manager
-              </Typography>
-              <Divider sx={{ my: 1 }} />
-              <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-              <MenuItem onClick={handleMenuClose}>Settings</MenuItem>
+              <Box sx={{ px: 2, pt: 1, pb: 0.5 }}>
+                <Typography variant="subtitle2" sx={{ color: "text.secondary" }}>
+                  {roleLabel}
+                </Typography>
+                {firstNameLabel && (
+                  <Typography variant="caption" sx={{ color: "text.disabled" }}>
+                    {firstNameLabel}
+                  </Typography>
+                )}
+              </Box>
               <Divider sx={{ my: 1 }} />
               <MenuItem onClick={handleLogout}>Logout</MenuItem>
             </Menu>

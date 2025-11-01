@@ -55,17 +55,21 @@ export default function SaleReceiptDialog({ sale, onClose }: Props) {
           ${styleTags}
           <style>
             @page { size: 80mm auto; margin: 0; }
-            body {
+            html, body {
               margin: 0;
               padding: 0;
               background: #fff;
-              font-family: monospace;
+              font-family: "Public Sans", "Helvetica Neue", Arial, sans-serif;
               font-size: 11px;
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
             }
             #printable-receipt {
               width: 80mm;
               padding: 4mm;
               box-sizing: border-box;
+              margin: 0 auto;
+              max-width: 100%;
             }
             img {
               display: block;

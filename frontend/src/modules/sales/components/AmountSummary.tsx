@@ -20,7 +20,7 @@ export default function AmountSummary() {
   const navigate = useNavigate();
 
   const admin = useSelector(selectAdminConfig);
-  const taxRate = admin?.taxRate ?? 8; // percent (or decimal, handled below)
+  const taxRate = admin?.taxRate ?? 8; 
 
   const cart = useSelector(selectCartItems);
   const discount = useSelector(selectDiscount);
@@ -72,7 +72,6 @@ export default function AmountSummary() {
           maxHeight: 260,
           overflowY: "auto",
           pr: 0.5,
-          "&::-webkit-scrollbar": { display: "none" },
         }}
       >
         {cart.length > 0 ? (

@@ -259,7 +259,6 @@ export default function CartPanel() {
         sx={{
           flexGrow: 1,
           overflowY: "auto",
-          "&::-webkit-scrollbar": { display: "none" },
         }}
       >
         {cart.length > 0 ? (

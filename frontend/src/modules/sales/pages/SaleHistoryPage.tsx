@@ -165,7 +165,7 @@ export default function SaleHistoryPage() {
           >
             <MenuItem value="all">All Payments</MenuItem>
             <MenuItem value="paid">Paid</MenuItem>
-            <MenuItem value="pending">Pending</MenuItem>
+            <MenuItem value="installment">Pending</MenuItem>
             <MenuItem value="refunded">Refunded</MenuItem>
           </TextField>
         </Grid>

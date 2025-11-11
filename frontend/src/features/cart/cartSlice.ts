@@ -8,6 +8,8 @@ import { normalizeCartItem } from "@/utils/cartAdapter";
 // -----------------------------------------
 export interface CartItem extends Item {
     qty: number;
+    taxApplied?: boolean;
+    discount?: number;
 }
 
 export interface CartState {

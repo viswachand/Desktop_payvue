@@ -4,6 +4,7 @@ import { Dialog, DialogActions, DialogContent } from "@mui/material";
 import InventoryReceipt from "./InventoryReceipt";
 import type { Sale } from "@payvue/shared/types/sale";
 import { RECEIPT_WIDTH } from "@/modules/receipts/constants";
+import { printReceipt } from "@/utils/printReceipt";
 
 interface Props {
   sale: Sale | null;
@@ -15,79 +16,7 @@ export default function SaleReceiptDialog({ sale, onClose }: Props) {
   if (!sale) return null;
 
   const handlePrint = () => {
-    const receipt = document.getElementById("printable-receipt");
-    if (!receipt) return;
-
-    // Clone all MUI + global styles
-    const styleTags = Array.from(
-      document.querySelectorAll("style, link[rel='stylesheet']")
-    )
-      .map((el) => el.outerHTML)
-      .join("\n");
-
-    // 🔹 Capture QR canvas and convert to base64 (smaller size)
-    const qrCanvas = receipt.querySelector("canvas");
-    let qrImageHtml = "";
-    if (qrCanvas) {
-      try {
-        const dataUrl = (qrCanvas as HTMLCanvasElement).toDataURL("image/png");
-        qrImageHtml = `<img src="${dataUrl}" width="64" height="64" />`; // 👈 Reduced size
-      } catch {
-        console.warn("QR canvas conversion failed");
-      }
-    }
-
-    // Clone receipt HTML, replacing the QR <canvas> with the <img>
-    let receiptHtml = receipt.outerHTML;
-    if (qrImageHtml) {
-      receiptHtml = receiptHtml.replace(/<canvas[\s\S]*?<\/canvas>/, qrImageHtml);
-    }
-
-    // Open print window safely (no deprecated write)
-    const printWindow = window.open("", "_blank", "width=400,height=600");
-    if (!printWindow) return;
-
-    printWindow.document.open();
-    printWindow.document.writeln(`
-      <html>
-        <head>
-          <title>Receipt - ${sale?.invoiceNumber ?? ""}</title>
-          ${styleTags}
-          <style>
-            @page { size: 80mm auto; margin: 0; }
-            html, body {
-              margin: 0;
-              padding: 0;
-              background: #fff;
-              font-family: "Public Sans", "Helvetica Neue", Arial, sans-serif;
-              font-size: 11px;
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-            }
-            #printable-receipt {
-              width: 80mm;
-              padding: 4mm;
-              box-sizing: border-box;
-              margin: 0 auto;
-              max-width: 100%;
-            }
-            img {
-              display: block;
-              margin: auto;
-            }
-          </style>
-        </head>
-        <body>${receiptHtml}</body>
-      </html>
-    `);
-    printWindow.document.close();
-
-    // Wait to ensure styles and images render
-    setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    }, 600);
+    printReceipt(sale);
   };
 
   return (
@@ -111,7 +40,16 @@ export default function SaleReceiptDialog({ sale, onClose }: Props) {
       }}
     >
       <DialogContent dividers sx={{ backgroundColor: theme.palette.background.paper, p: 0 }}>
-        <Box id="printable-receipt">
+        <Box
+          id="printable-receipt"
+          sx={{
+            width: "100%",
+            maxWidth: RECEIPT_WIDTH,
+            mx: "auto",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
           <InventoryReceipt data={sale} />
         </Box>
       </DialogContent>

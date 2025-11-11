@@ -5,6 +5,8 @@ import { SaleItem } from "@payvue/shared/types/sale";
 import { AdminConfig } from "../models/adminModel";
 import { toNumber } from "./helperFunctions";
 
+const isTaxable = (value: any) => value === false ? false : true;
+
 /**
  * Builds sale items array from request payload.
  * - If item type is "inventory", fetch details from Item collection.
@@ -37,7 +39,7 @@ export const buildSaleItems = async (items: any[]): Promise<SaleItem[]> => {
                     costPrice: toNumber(invItem.costPrice),
                     quantity: toNumber(i.quantity ?? 1),
                     discount: toNumber(i.discount ?? 0),
-                    taxApplied: true,
+                    taxApplied: isTaxable(i.taxApplied),
                 };
             }
 
@@ -48,7 +50,7 @@ export const buildSaleItems = async (items: any[]): Promise<SaleItem[]> => {
                 costPrice: toNumber(i.costPrice),
                 quantity: toNumber(i.quantity),
                 discount: toNumber(i.discount ?? 0),
-                taxApplied: false,
+                taxApplied: isTaxable(i.taxApplied),
             };
         })
     );
@@ -81,7 +83,11 @@ export const calculateTotals = async (
 
   const taxableSubtotal = items.reduce((acc, i) => {
     if (i.taxApplied === false) return acc;
-    return acc + num(i.costPrice ?? i.unitPrice) * num(i.quantity ?? 1);
+    const price = num(i.costPrice ?? i.unitPrice ?? 0);
+    const qty = num(i.quantity ?? 1);
+    const discount = num(i.discount ?? 0);
+    const lineTotal = Math.max(price * qty - discount, 0);
+    return acc + lineTotal;
   }, 0);
 
   const tax = taxableSubtotal * taxRate;

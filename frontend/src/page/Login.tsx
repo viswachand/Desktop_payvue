@@ -68,7 +68,7 @@ const Login: React.FC = () => {
         mb={3}
         color="text.secondary"
       >
-        Login to access your PayVue POS dashboard
+        Login to access your A-1 Jewelers POS dashboard
       </Typography>
 
       <Box>
@@ -116,7 +116,7 @@ const Login: React.FC = () => {
         mt={3}
         color="text.secondary"
       >
-        © {new Date().getFullYear()} PayVue POS
+        © {new Date().getFullYear()} A-1 Jewelers POS
       </Typography>
 
       <Snackbar

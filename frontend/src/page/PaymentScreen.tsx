@@ -29,6 +29,7 @@ import {
   selectComment,
   clearPayment,
 } from "@/features/payments/paymentSlice";
+import { selectAdminConfig } from "@/features/admin/adminSlice";
 import { createSale } from "@/features/sales/saleSlice";
 import { calculateSaleTotals } from "@/utils/saleHelpers";
 import type { AppDispatch } from "@/app/store";
@@ -44,6 +45,8 @@ export default function PaymentPage() {
   const customer = useSelector(selectCustomer);
   const discount = useSelector(selectDiscount);
   const comment = useSelector(selectComment);
+  const admin = useSelector(selectAdminConfig);
+  const taxRate = admin?.taxRate ?? 8;
 
   // Local state
   const [installments, setInstallments] = useState<
@@ -67,8 +70,8 @@ export default function PaymentPage() {
 
   // Totals
   const { subtotal, tax, total } = useMemo(
-    () => calculateSaleTotals(cart, discount),
-    [cart, discount]
+    () => calculateSaleTotals(cart, discount, taxRate),
+    [cart, discount, taxRate]
   );
 
   useEffect(() => {
@@ -97,16 +100,24 @@ export default function PaymentPage() {
       ? "service"
       : "inventory";
 
-    const saleItems = cart.map((i: CartItem & { type?: string }) => ({
-      type: (i.itemType ?? "inventory") as SaleItemType,
-      itemId: i.id,
-      name: i.itemName ?? i.itemName,
-      costPrice: i.costPrice,
-      quantity: i.quantity ?? i.qty ?? 1,
-      taxApplied:
-        ((i.type ?? "inventory") as SaleItemType) === "inventory" ||
-        ((i.type ?? "inventory") as SaleItemType) === "custom",
-    }));
+    const saleItems = cart.map((i: CartItem & { type?: string }) => {
+      const resolvedType = (i.itemType ?? (i as any).type ?? "inventory") as SaleItemType;
+      const quantity = Number(i.quantity ?? i.qty ?? 1) || 1;
+      const taxApplied = i.taxApplied === false ? false : true;
+      const lineDiscount = Number(i.discount ?? 0) || 0;
+      const costPrice = Number(i.costPrice ?? 0) || 0;
+
+      return {
+        type: resolvedType,
+        itemId: i.id,
+        name: i.itemName ?? (i as any).name ?? "",
+        description: i.itemDescription ?? (i as any).description ?? "",
+        costPrice,
+        quantity,
+        discount: lineDiscount,
+        taxApplied,
+      };
+    });
 
     const salePayload = {
       saleType,

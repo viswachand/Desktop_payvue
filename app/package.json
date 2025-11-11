@@ -1,5 +1,5 @@
 {
-  "name": "payvue-pos",
+  "name": "a-1-jewelers",
   "version": "1.0.0",
   "main": "dist/main.js",
   "description": "PayVue POS Desktop App",
@@ -11,9 +11,9 @@
     "build": "tsc -p tsconfig.json",
     "build:assets": "npm --prefix ../frontend install && npm --prefix ../frontend run build && npm --prefix ../backend install && npm --prefix ../backend run build && npm --prefix ../backend prune --omit=dev",
     "dist": "npm run build:assets && npm run build && electron-builder --mac --win --x64",
-    "dist:mac": "rm -rf ../release && npm run build:assets && npm run build && electron-builder --mac",
-    "dist:win": "rm -rf ../release && npm run build:assets && npm run build && electron-builder --win --x64",
-    "package:all": "rm -rf ../release && npm run dist"
+    "dist:mac": "rm -rf \"../A - 1 JEWELERS\" && npm run build:assets && npm run build && electron-builder --mac",
+    "dist:win": "rm -rf \"../A - 1 JEWELERS\" && npm run build:assets && npm run build && electron-builder --win --x64",
+    "package:all": "rm -rf \"../A - 1 JEWELERS\" && npm run dist"
   },
 
   "dependencies": {
@@ -28,8 +28,8 @@
   },
 
   "build": {
-    "appId": "com.payvue.pos",
-    "productName": "PayVue POS",
+    "appId": "com.a1jewelers.pos",
+    "productName": "A 1-JEWELERS",
 
     "files": [
       "dist/**/*",
@@ -62,7 +62,7 @@
     "asarUnpack": [],
 
     "directories": {
-      "output": "../release"
+      "output": "../A - 1 JEWELERS"
     },
 
     "mac": {

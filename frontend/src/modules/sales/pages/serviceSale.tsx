@@ -8,6 +8,7 @@ import {
   useTheme,
   Snackbar,
   TextField,
+  Stack,
 } from "@/components/common";
 import SaleLayout from "../layout/SaleLayout";
 import type { AppDispatch } from "@/app/store";
@@ -77,6 +78,7 @@ export default function ServiceSale() {
         itemDescription: `Service Type: ${serviceType}, Receive Date: ${receiveDate}`,
         costPrice: numericAmount,
         qty: editingItem.qty ?? 1,
+        taxApplied: true,
       } as CartItem;
 
       (updatedService as any).receiveDate = receiveDate;
@@ -106,7 +108,7 @@ export default function ServiceSale() {
       costPrice: numericAmount,
       qty: 1,
       itemType: serviceType,
-      taxApplied: false,
+      taxApplied: true,
     } as CartItem;
 
     (newService as any).receiveDate = receiveDate;
@@ -144,20 +146,32 @@ export default function ServiceSale() {
             border: `1px solid ${theme.palette.divider}`,
           }}
         >
-          <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
+          <Grid container spacing={2.5} alignItems="flex-end">
+            <Grid
+              size={{ xs: 12, md: 4 }}
+              sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+            >
+              <Typography variant="subtitle2" fontWeight={600}>
                 Service Type
               </Typography>
-              <Box sx={{ display: "flex", gap: 1, mt: -1.8 }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "repeat(2, minmax(0, 1fr))",
+                    sm: "repeat(2, 1fr)",
+                  },
+                  gap: 1,
+                }}
+              >
                 {(["repair", "grill"] as ServiceType[]).map((type) => (
                   <Button
                     key={type}
                     variant={serviceType === type ? "contained" : "outlined"}
                     onClick={() => setServiceType(type)}
                     color="primary"
-                    fullWidth
                     sx={{
+                      width: "100%",
                       textTransform: "capitalize",
                       fontWeight: 500,
                       borderRadius: theme.shape.borderRadius,
@@ -179,7 +193,11 @@ export default function ServiceSale() {
                 placeholder="Enter amount"
                 fullWidth
                 size="small"
-                inputProps={{ inputMode: "decimal" }}
+                slotProps={{
+                  input: {
+                    inputMode: "decimal",
+                  },
+                }}
               />
             </Grid>
 

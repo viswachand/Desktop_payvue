@@ -2,6 +2,7 @@ import path from "path";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db";
 import { app } from "./app";
+import { seedInitialData } from "./config/seed";
 
 const envPath = process.env.BACKEND_ENV_PATH || path.resolve(__dirname, "../.env");
 dotenv.config({ path: envPath });
@@ -18,6 +19,9 @@ if (!process.env.JWT_KEY) {
 export async function startServer() {
   try {
     await connectDB();
+    if (process.env.NODE_ENV !== "test" && process.env.SKIP_SEED !== "true") {
+      await seedInitialData();
+    }
     app.listen(Number(PORT), "0.0.0.0", () => {
       console.log(`🚀 Backend running at: http://127.0.0.1:${PORT}`);
     });

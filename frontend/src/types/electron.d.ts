@@ -7,6 +7,10 @@ declare global {
       sendToMain: (msg: string) => void;
       onFromMain: (callback: (event: any, data: any) => void) => void;
       printReceipt: (sale: any) => void;
+      notifyPrintReady?: () => void;
+      onRenderReceipt?: (
+        callback: (event: any, data: any) => void
+      ) => (() => void) | void;
     };
   }
 }

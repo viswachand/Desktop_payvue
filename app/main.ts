@@ -34,7 +34,8 @@ function startBackend() {
 
   const envPath = join(dirname(backendEntry), ".env");
   process.env.PORT = process.env.PORT ?? "4000";
-  process.env.MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://127.0.0.1:27017/payvue";
+  process.env.MONGODB_URI =
+    process.env.MONGODB_URI ?? "mongodb://127.0.0.1:27017/A1-Jewelers";
   process.env.BACKEND_ENV_PATH = process.env.BACKEND_ENV_PATH ?? envPath;
 
   try {
@@ -84,14 +85,32 @@ ipcMain.on("print-receipt", async (_event, saleData) => {
     },
   });
 
+  printWindow.on("closed", () => {
+    printWindow = null;
+  });
+
   await printWindow.loadURL(resolveFrontendUrl("/print"));
 
   printWindow.webContents.once("did-finish-load", () => {
     printWindow?.webContents.send("render-receipt", saleData);
-    setTimeout(() => {
-      printWindow?.webContents.print({ silent: true, printBackground: true });
-    }, 500);
   });
+});
+
+ipcMain.on("receipt-ready", () => {
+  if (!printWindow) return;
+
+  printWindow.webContents.print(
+    { silent: false, printBackground: true },
+    (success, errorReason) => {
+      if (!success) {
+        console.error("❌ Print failed:", errorReason);
+      } else {
+        console.log("🖨️ Receipt sent to printer");
+      }
+      printWindow?.close();
+      printWindow = null;
+    }
+  );
 });
 
 app.whenReady().then(async () => {

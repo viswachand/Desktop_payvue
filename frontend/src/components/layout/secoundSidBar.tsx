@@ -1,10 +1,12 @@
 import { Drawer, Box, Typography, useTheme } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   APPBAR_HEIGHT,
   SIDEBAR_WIDTH,
   SUB_SIDEBAR_WIDTH,
 } from "@/utils/constants";
+import { selectIsAdmin } from "@/features/auth/authSlice";
 
 interface SubSidebarProps {
   type: "sale" | "layaway";
@@ -19,15 +21,23 @@ const saleMenu = [
 
 const layawayMenu = [
   { label: "Layaway List", path: "/sale/layaway" },
-   { label: "Historical Layaway", path: "/sale/layaway/historicalayaway" },
+  {
+    label: "Historical Layaway",
+    path: "/sale/layaway/historicalayaway",
+    adminOnly: true,
+  },
 ];
 
 export default function SubSidebar({ type }: SubSidebarProps) {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+  const isAdmin = useSelector(selectIsAdmin);
 
-  const items = type === "sale" ? saleMenu : layawayMenu;
+  const items =
+    type === "sale"
+      ? saleMenu
+      : layawayMenu.filter((item) => !item.adminOnly || isAdmin);
 
   return (
     <Drawer

@@ -24,14 +24,18 @@ interface Props {
 export default function HistoricalItemsTable({ items, onChange }: Props) {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
+  const [dialogMode, setDialogMode] = React.useState<"add" | "edit">("add");
+  const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
 
-  const [newItem, setNewItem] = React.useState<Item>({
+  const createEmptyItem = (): Item => ({
     name: "",
     type: "inventory",
     quantity: 1,
     costPrice: undefined,
     discount: undefined,
   });
+
+  const [newItem, setNewItem] = React.useState<Item>(createEmptyItem());
 
   const rows = React.useMemo(() => {
     return (items || []).map((i, idx) => ({
@@ -69,10 +73,63 @@ export default function HistoricalItemsTable({ items, onChange }: Props) {
       flex: 0.9,
       valueGetter: (_, r) => (r.total ? r.total.toFixed(2) : "0.00"),
     },
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 0.8,
+      sortable: false,
+      filterable: false,
+      align: "right",
+      headerAlign: "right",
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant="text"
+            onClick={() => handleOpenEdit(params.row.id)}
+            sx={{ textTransform: "none" }}
+          >
+            Edit
+          </Button>
+        </Stack>
+      ),
+    },
   ];
 
-  const handleAddItem = () => {
-    const updatedItems = [...items, newItem];
+  const handleCloseDialog = () => {
+    setOpen(false);
+    setDialogMode("add");
+    setEditingIndex(null);
+    setNewItem(createEmptyItem());
+  };
+
+  const handleOpenAdd = () => {
+    setDialogMode("add");
+    setEditingIndex(null);
+    setNewItem(createEmptyItem());
+    setOpen(true);
+  };
+
+  const handleOpenEdit = (index: number) => {
+    const item = items[index];
+    if (!item) return;
+    setDialogMode("edit");
+    setEditingIndex(index);
+    setNewItem({ ...item });
+    setOpen(true);
+  };
+
+  const handleSaveItem = () => {
+    if (!newItem.name || !newItem.costPrice) return;
+
+    let updatedItems: Item[];
+    if (dialogMode === "edit" && editingIndex !== null) {
+      updatedItems = items.map((item, idx) =>
+        idx === editingIndex ? { ...newItem } : item
+      );
+    } else {
+      updatedItems = [...items, { ...newItem }];
+    }
+
     const updatedTotal = updatedItems.reduce(
       (sum, i) =>
         sum +
@@ -82,14 +139,7 @@ export default function HistoricalItemsTable({ items, onChange }: Props) {
     );
 
     onChange(updatedItems, updatedTotal);
-    setOpen(false);
-    setNewItem({
-      name: "",
-      type: "inventory",
-      quantity: 1,
-      costPrice: undefined,
-      discount: undefined,
-    });
+    handleCloseDialog();
   };
 
   return (
@@ -98,7 +148,7 @@ export default function HistoricalItemsTable({ items, onChange }: Props) {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => setOpen(true)}
+          onClick={handleOpenAdd}
           sx={{ textTransform: "none" }}
         >
           Add Item
@@ -127,6 +177,12 @@ export default function HistoricalItemsTable({ items, onChange }: Props) {
             pagination: { paginationModel: { pageSize: 5 } },
           }}
           pageSizeOptions={[5, 10]}
+          onRowDoubleClick={(params) => {
+            const rowIndex = Number(params.row?.id);
+            if (!Number.isNaN(rowIndex)) {
+              handleOpenEdit(rowIndex);
+            }
+          }}
           rowHeight={64}
           density="comfortable"
           sx={{ width: "100%" }}
@@ -147,8 +203,10 @@ export default function HistoricalItemsTable({ items, onChange }: Props) {
         </Typography>
       </Box>
 
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Add Historical Item</DialogTitle>
+      <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          {dialogMode === "edit" ? "Edit Historical Item" : "Add Historical Item"}
+        </DialogTitle>
         <DialogContent dividers>
           <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mt={1}>
             <TextField
@@ -219,16 +277,16 @@ export default function HistoricalItemsTable({ items, onChange }: Props) {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setOpen(false)} variant="outlined">
+          <Button onClick={handleCloseDialog} variant="outlined">
             Cancel
           </Button>
           <Button
-            onClick={handleAddItem}
+            onClick={handleSaveItem}
             variant="contained"
             color="primary"
             disabled={!newItem.name || !newItem.costPrice}
           >
-            Add Item
+            {dialogMode === "edit" ? "Save Changes" : "Add Item"}
           </Button>
         </DialogActions>
       </Dialog>

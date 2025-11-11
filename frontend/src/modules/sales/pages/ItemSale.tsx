@@ -163,13 +163,17 @@ export default function ItemSale() {
         {/* Item Grid */}
         {!isLoading && (
           <>
-            <Grid spacing={2.5}>
+            <Grid spacing={2.5} alignItems="stretch">
               {paginatedItems.length > 0 ? (
                 paginatedItems.map((product: Item) => {
                   const productId = resolveItemId(product);
                   const inCart = cart.some((entry: Item) => entry.id === productId);
                   return (
-                    <Grid key={productId} size={{ xs: 12, sm: 6, md: 4 }}>
+                    <Grid
+                      key={productId}
+                      size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
+                      sx={{ display: "flex" }}
+                    >
                       <ItemCard item={product} inCart={inCart} onAdd={handleAddToCart} />
                     </Grid>
                   );
@@ -226,6 +230,7 @@ const ItemCard = memo(function ItemCard({ item, inCart, onAdd }: ItemCardProps) 
   return (
     <Box
       sx={{
+        flex: 1,
         display: "flex",
         flexDirection: "column",
         height: "100%",

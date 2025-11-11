@@ -74,11 +74,26 @@ export default function HistoricalLayawayForm({ onCancel }: HistoricalLayawayFor
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const normalizeDateForSubmit = (value?: string) => {
+    if (!value) return undefined;
+    const parsed = value.includes("T")
+      ? new Date(value)
+      : new Date(`${value}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return undefined;
+    return parsed.toISOString();
+  };
+
   const handleSubmit = async () => {
     if (totalPaid > total) {
       alert("Total payments cannot exceed total sale amount.");
       return;
     }
+
+    const normalizedInstallments =
+      form.installments?.map((installment: any) => ({
+        ...installment,
+        paidAt: normalizeDateForSubmit(installment.paidAt),
+      })) ?? [];
 
     const payload = {
       ...form,
@@ -88,6 +103,8 @@ export default function HistoricalLayawayForm({ onCancel }: HistoricalLayawayFor
       total,
       paidAmount: totalPaid,
       balance,
+      saleDate: normalizeDateForSubmit(form.saleDate),
+      installments: normalizedInstallments,
     };
 
     await dispatch(createHistoricalLayaway(payload));

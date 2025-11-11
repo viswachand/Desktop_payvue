@@ -1,8 +1,7 @@
 import React from "react";
-import { Box, Typography, Divider,useTheme } from "@/components/common";
+import { Box, Typography, Divider, useTheme } from "@/components/common";
 import { Stack } from "@mui/material";
 import { QRCodeCanvas } from "qrcode.react";
-import { RECEIPT_WIDTH } from "./constants";
 
 
 interface ReceiptLayoutProps {
@@ -45,13 +44,15 @@ function ReceiptLayout({
   const theme = useTheme();
   return (
     <Box
-      id="printable-receipt"
+      className="receipt-content"
       sx={{
-        width: RECEIPT_WIDTH,
+        width: "100%",
+        maxWidth: "100%",
         lineHeight: 1.4,
         bgcolor: theme.palette.background.paper,
-        border: `${theme.palette.divider} 1px solid`,
+        border: `1px solid ${theme.palette.divider}`,
         p: 1,
+        boxSizing: "border-box",
       }}
     >
       <Stack alignItems="center" spacing={0.3} sx={{ mb: 1.5 }}>

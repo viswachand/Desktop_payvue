@@ -7,7 +7,7 @@ import {
   CircularProgress,
   FormHelperText,
 } from "@mui/material";
-import {TextField,Button,  Box,} from "@/components/common"
+import { TextField, Button, Box } from "@/components/common";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/app/store";
@@ -21,6 +21,10 @@ interface Props {
   balanceAmount: number;
 }
 
+const getTodayDate = () => new Date().toISOString().split("T")[0];
+const toLocalMidnightISOString = (date: string) =>
+  date ? `${date}T00:00:00` : undefined;
+
 export default function AddPaymentDialog({
   open,
   onClose,
@@ -31,6 +35,7 @@ export default function AddPaymentDialog({
   const dispatch = useDispatch<AppDispatch>();
   const [amount, setAmount] = useState<string>("0.00");
   const [method, setMethod] = useState<string>("cash");
+  const [paymentDate, setPaymentDate] = useState<string>(getTodayDate());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
@@ -50,7 +55,11 @@ export default function AddPaymentDialog({
       const resultAction = await dispatch(
         addLayawayPayment({
           id: layawayId,
-          payload: { amount: numericAmount, method },
+          payload: {
+            amount: numericAmount,
+            method,
+            paidAt: toLocalMidnightISOString(paymentDate),
+          },
         })
       ).unwrap();
 
@@ -66,6 +75,7 @@ export default function AddPaymentDialog({
   const handleClose = () => {
     setAmount("0.00");
     setMethod("cash");
+    setPaymentDate(getTodayDate());
     setError("");
     onClose();
   };
@@ -88,6 +98,16 @@ export default function AddPaymentDialog({
               {error}
             </FormHelperText>
           )}
+          <TextField
+            label="Payment Date"
+            type="date"
+            value={paymentDate}
+            onChange={(e) => setPaymentDate(e.target.value)}
+            fullWidth
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
+          />
           <TextField
             select
             label="Payment Method"

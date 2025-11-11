@@ -39,41 +39,73 @@ export const createHistoricalLayaway = asyncHandler(
       if (!policyTitle || !policyDescription)
         throw new BadRequestError("Policy details are required.");
 
+      const sanitizedItems = items.map((item: any) => ({
+        ...item,
+        quantity: toNumber(item.quantity ?? 0),
+        costPrice: toNumber(item.costPrice ?? 0),
+        discount: toNumber(item.discount ?? 0),
+      }));
+
+      const sanitizedInstallments = installments.map((installment: any) => {
+        const normalizedPaidAt = installment.paidAt
+          ? new Date(installment.paidAt)
+          : undefined;
+        if (
+          normalizedPaidAt &&
+          Number.isNaN(normalizedPaidAt.getTime())
+        ) {
+          throw new BadRequestError("Invalid payment date provided.");
+        }
+
+        return {
+          ...installment,
+          amount: toNumber(installment.amount ?? 0),
+          paidAt: normalizedPaidAt,
+        };
+      });
+
       // ---------------- Calculate Financials ----------------
-      const paidAmount = installments.reduce(
+      const paidAmount = sanitizedInstallments.reduce(
         (sum: number, i: any) => sum + toNumber(i.amount ?? 0),
         0
       );
 
-      const balanceAmount = Math.max(toNumber(total) - paidAmount, 0);
+      const normalizedSubtotal = toNumber(subtotal);
+      const normalizedTax = toNumber(tax);
+      const normalizedDiscountTotal = toNumber(discountTotal);
+      const normalizedTotal = toNumber(total);
+
+      const balanceAmount = Math.max(normalizedTotal - paidAmount, 0);
 
       const invoiceNumber = `VCR-${Date.now()}`;
+
+      const normalizedSaleDate = saleDate ? new Date(saleDate) : new Date();
+      if (Number.isNaN(normalizedSaleDate.getTime())) {
+        throw new BadRequestError("Invalid sale date provided.");
+      }
 
       // ---------------- Build Sale Document ----------------
       const sale = Sale.build({
         invoiceNumber,
         customerInformation,
-        items,
-        subtotal,
-        tax,
+        items: sanitizedItems,
+        subtotal: normalizedSubtotal,
+        tax: normalizedTax,
         saleType,
-        discountTotal,
-        total,
+        discountTotal: normalizedDiscountTotal,
+        total: normalizedTotal,
         paidAmount,
         balanceAmount,
         status: balanceAmount <= 0 ? "paid" : "installment",
-        installments,
+        installments: sanitizedInstallments,
         comment,
         policyTitle,
         policyDescription,
         isLayaway: true,
         isHistoricalLayaway: true,
-        createdAt: saleDate ? new Date(saleDate) : new Date(),
+        createdAt: normalizedSaleDate,
       });
 
-      console.log("Creating historical layaway sale:", sale);
-
-      // ---------------- Save ----------------
       const savedSale = await sale.save();
 
       successResponse(

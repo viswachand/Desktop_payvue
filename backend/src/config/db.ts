@@ -1,8 +1,12 @@
 import mongoose from "mongoose";
 import { DatabaseConnectionError } from "../errors/database-connection-error";
 
-// ✅ Always use your MongoDB Atlas URI
-const MONGO_URI = "mongodb+srv://viswachandakkanambattu:MrUNYg1duC8AiASM@a1.bas9awe.mongodb.net/payvue";
+const resolveMongoUri = () => {
+    const raw = process.env.MONGODB_URI ?? "mongodb://127.0.0.1:27017/A1-Jewelers";
+    return raw.trim().replace(/^"+|"+$/g, "");
+};
+
+const MONGO_URI = resolveMongoUri();
 
 /**
  * Logs a formatted message with a timestamp.
@@ -18,14 +22,14 @@ function log(message: string, level: "INFO" | "ERROR" = "INFO") {
  */
 export async function connectDB(): Promise<void> {
     try {
-        log("Attempting to connect to MongoDB Atlas...");
+        log(`Attempting to connect to MongoDB at ${MONGO_URI}...`);
 
         await mongoose.connect(MONGO_URI, {
             autoIndex: true,
             serverSelectionTimeoutMS: 10000, // 10 seconds timeout
         });
 
-        log("✅ MongoDB connection established successfully (Atlas Cluster: a1.bas9awe)");
+        log("✅ MongoDB connection established successfully");
         log(`Connected Database: ${mongoose.connection.name}`);
         log(`Connection Host: ${mongoose.connection.host}`);
     } catch (error) {
@@ -34,11 +38,11 @@ export async function connectDB(): Promise<void> {
         log(`Error Message: ${err.message}`, "ERROR");
 
         if (err.message.includes("ECONNREFUSED")) {
-            log("⚠️  Possible Fix: Ensure MongoDB Atlas IP whitelist includes your current IP.", "ERROR");
+            log("⚠️  Possible Fix: Ensure the MongoDB server is running and accessible.", "ERROR");
         } else if (err.message.includes("authentication")) {
             log("⚠️  Possible Fix: Check your MongoDB username/password.", "ERROR");
         } else if (err.message.includes("ENOTFOUND")) {
-            log("⚠️  Possible Fix: Verify internet connection or DNS issues.", "ERROR");
+            log("⚠️  Possible Fix: Verify the connection string host.", "ERROR");
         }
 
         throw new DatabaseConnectionError();

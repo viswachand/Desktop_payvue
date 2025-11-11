@@ -11,6 +11,7 @@ import { dashboardRoutes } from "@/modules/dashboard";
 import PrivateRoute from "@/routes/PrivateRoute";
 import AdminRoute from "@/routes/AdminRoute";
 import PublicRoute from "@/routes/PublicRoute";
+import PrintReceiptPage from "@/modules/receipts/PrintReceiptPage";
 import PaymentPage from "./page/PaymentScreen";
 import AppLayout from "@/components/layout/AppLayout";
 
@@ -42,15 +43,16 @@ export default function App({ toggleTheme, currentMode }: AppProps) {
     >
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/print" element={<PrintReceiptPage />} />
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<Login />} />
         </Route>
         <Route element={<PrivateRoute />}>
-            <Route
-              element={
-                <AppLayout toggleTheme={toggleTheme} currentMode={currentMode} />
-              }
-            >
+          <Route
+            element={
+              <AppLayout toggleTheme={toggleTheme} currentMode={currentMode} />
+            }
+          >
             {dashboardRoutes.map((r) => (
               <Route key={r.path} path={r.path} element={r.element} />
             ))}

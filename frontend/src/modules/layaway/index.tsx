@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { RouteObject } from "react-router-dom";
+import RequireAdmin from "@/routes/RequireAdmin";
 
 // Lazy load existing pages
 const LayawayListPage = lazy(() => import("./pages/LayawayListPage"));
@@ -21,6 +22,10 @@ export const layawayRoutes: RouteObject[] = [
   },
   {
     path: "sale/layaway/historicalayaway",
-    element: <AddHistoricalLayawayPage />,
+    element: (
+      <RequireAdmin>
+        <AddHistoricalLayawayPage />
+      </RequireAdmin>
+    ),
   },
 ];

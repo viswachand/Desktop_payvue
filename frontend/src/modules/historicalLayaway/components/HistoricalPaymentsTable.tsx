@@ -29,11 +29,49 @@ export default function HistoricalPaymentsTable({
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState("");
-  const [newPayment, setNewPayment] = React.useState<Installment>({
+  const [dialogMode, setDialogMode] = React.useState<"add" | "edit">("add");
+  const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
+
+  const createEmptyPayment = (): Installment => ({
     amount: undefined,
     method: "",
     paidAt: "",
   });
+
+  const [newPayment, setNewPayment] =
+    React.useState<Installment>(createEmptyPayment());
+
+  const formatDateForDisplay = (value?: string) => {
+    if (!value) return "-";
+    const date = value.includes("T")
+      ? new Date(value)
+      : new Date(`${value}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return "-";
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const dateValueForInput = (value?: string) => {
+    if (!value) return "";
+    if (value.includes("T")) {
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toISOString().slice(0, 10);
+      }
+    }
+    return value.slice(0, 10);
+  };
+
+  const paymentMethodLabels: Record<string, string> = {
+    cash: "Cash",
+    credit: "Credit Card",
+    debit: "Debit Card",
+    mixed: "Mixed",
+    others: "Others",
+  };
 
   const totalPaid = React.useMemo(
     () => installments.reduce((sum, i) => sum + (i.amount ?? 0), 0),
@@ -49,39 +87,42 @@ export default function HistoricalPaymentsTable({
     [installments]
   );
 
-  const columns: GridColDef[] = [
-    {
-      field: "paidAt",
-      headerName: "Paid Date",
-      flex: 1,
-      valueGetter: (_, r) =>
-        r.paidAt
-          ? new Date(r.paidAt).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })
-          : "-",
-    },
-    {
-      field: "method",
-      headerName: "Payment Method",
-      flex: 1,
-      valueGetter: (_, r) => r.method || "—",
-    },
-    {
-      field: "amount",
-      headerName: "Amount ($)",
-      flex: 1,
-      valueGetter: (_, r) =>
-        r.amount != null ? Number(r.amount).toFixed(2) : "-",
-    },
-  ];
+  const handleCloseDialog = () => {
+    setOpen(false);
+    setDialogMode("add");
+    setEditingIndex(null);
+    setError("");
+    setNewPayment(createEmptyPayment());
+  };
 
-  const handleAddPayment = () => {
+  const handleOpenAdd = () => {
+    setDialogMode("add");
+    setEditingIndex(null);
+    setNewPayment(createEmptyPayment());
+    setOpen(true);
+  };
+
+  const handleOpenEdit = (index: number) => {
+    const installment = installments[index];
+    if (!installment) return;
+    setDialogMode("edit");
+    setEditingIndex(index);
+    setNewPayment({
+      amount: installment.amount,
+      method: installment.method,
+      paidAt: dateValueForInput(installment.paidAt),
+    });
+    setOpen(true);
+  };
+
+  const handleSavePayment = () => {
     setError("");
     const entered = newPayment.amount ?? 0;
-    const newTotal = totalPaid + entered;
+    const baseTotal =
+      dialogMode === "edit" && editingIndex !== null
+        ? totalPaid - (installments[editingIndex]?.amount ?? 0)
+        : totalPaid;
+    const newTotal = baseTotal + entered;
 
     if (newTotal > totalAmount) {
       setError(
@@ -92,14 +133,65 @@ export default function HistoricalPaymentsTable({
       return;
     }
 
-    onChange([...installments, newPayment]);
-    setOpen(false);
-    setNewPayment({
-      amount: undefined,
-      method: "",
-      paidAt: "",
-    });
+    const payload: Installment = {
+      amount: newPayment.amount,
+      method: newPayment.method,
+      paidAt: newPayment.paidAt,
+    };
+
+    const updated =
+      dialogMode === "edit" && editingIndex !== null
+        ? installments.map((inst, idx) =>
+            idx === editingIndex ? { ...payload } : inst
+          )
+        : [...installments, { ...payload }];
+
+    onChange(updated);
+    handleCloseDialog();
   };
+
+  const columns: GridColDef[] = [
+    {
+      field: "paidAt",
+      headerName: "Paid Date",
+      flex: 1,
+      valueGetter: (_, r) => formatDateForDisplay(r.paidAt),
+    },
+    {
+      field: "method",
+      headerName: "Payment Method",
+      flex: 1,
+      valueGetter: (_, r) =>
+        r.method ? paymentMethodLabels[r.method] ?? r.method : "—",
+    },
+    {
+      field: "amount",
+      headerName: "Amount ($)",
+      flex: 1,
+      valueGetter: (_, r) =>
+        r.amount != null ? Number(r.amount).toFixed(2) : "-",
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      flex: 0.9,
+      sortable: false,
+      filterable: false,
+      align: "right",
+      headerAlign: "right",
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant="text"
+            onClick={() => handleOpenEdit(params.row.id)}
+            sx={{ textTransform: "none" }}
+          >
+            Edit
+          </Button>
+        </Stack>
+      ),
+    },
+  ];
 
   return (
     <Box sx={{ px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
@@ -110,7 +202,7 @@ export default function HistoricalPaymentsTable({
         <Button
           variant="contained"
           color="primary"
-          onClick={() => setOpen(true)}
+          onClick={handleOpenAdd}
           sx={{ textTransform: "none" }}
         >
           Add Payment
@@ -141,6 +233,12 @@ export default function HistoricalPaymentsTable({
             pagination: { paginationModel: { pageSize: 10 } },
           }}
           pageSizeOptions={[10, 25, 50]}
+          onRowDoubleClick={(params) => {
+            const rowIndex = Number(params.row?.id);
+            if (!Number.isNaN(rowIndex)) {
+              handleOpenEdit(rowIndex);
+            }
+          }}
           rowHeight={64}
           density="comfortable"
           sx={{ width: "100%" }}
@@ -156,8 +254,12 @@ export default function HistoricalPaymentsTable({
         </Typography>
       </Box>
 
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Add Historical Payment</DialogTitle>
+      <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          {dialogMode === "edit"
+            ? "Edit Historical Payment"
+            : "Add Historical Payment"}
+        </DialogTitle>
         <DialogContent dividers>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -191,7 +293,8 @@ export default function HistoricalPaymentsTable({
               options={[
                 { value: "", label: "Select Method" },
                 { value: "cash", label: "Cash" },
-                { value: "card", label: "Card" },
+                { value: "credit", label: "Credit Card" },
+                { value: "debit", label: "Debit Card" },
                 { value: "mixed", label: "Mixed" },
                 { value: "others", label: "Others" },
               ]}
@@ -201,7 +304,7 @@ export default function HistoricalPaymentsTable({
             <TextField
               label="Paid Date"
               type="date"
-              value={newPayment.paidAt || ""}
+              value={newPayment.paidAt ? dateValueForInput(newPayment.paidAt) : ""}
               onChange={(e) =>
                 setNewPayment({
                   ...newPayment,
@@ -217,16 +320,16 @@ export default function HistoricalPaymentsTable({
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setOpen(false)} variant="outlined">
+          <Button onClick={handleCloseDialog} variant="outlined">
             Cancel
           </Button>
           <Button
-            onClick={handleAddPayment}
+            onClick={handleSavePayment}
             variant="contained"
             color="primary"
             disabled={!newPayment.amount || !newPayment.method || !newPayment.paidAt}
           >
-            Add Payment
+            {dialogMode === "edit" ? "Save Changes" : "Add Payment"}
           </Button>
         </DialogActions>
       </Dialog>

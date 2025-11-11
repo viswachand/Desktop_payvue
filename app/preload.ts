@@ -13,8 +13,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.send("print-receipt", sale);
   },
 
+  notifyPrintReady: () => {
+    ipcRenderer.send("receipt-ready");
+  },
+
   // optional: receive receipt render data in print window
   onRenderReceipt: (callback: (event: IpcRendererEvent, data: any) => void) => {
     ipcRenderer.on("render-receipt", callback);
+    return () => ipcRenderer.removeListener("render-receipt", callback);
   },
 });

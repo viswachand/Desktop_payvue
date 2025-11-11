@@ -8,10 +8,8 @@ import { calculateTotals, buildSaleItems } from "../utils/buildSaleItems";
 import { toNumber } from "../utils/helperFunctions";
 import { sanitizeDocs } from "../utils/sanitizeDocs";
 import { Sale as SaleType } from "@payvue/shared/types/sale";
-import { notifyN8n } from "../services/n8nService";
 
-const N8N_WEBHOOK_URL =
-  process.env.N8N_WEBHOOK_URL || "http://localhost:5678/webhook/sale-notify";
+
 
 /* ------------------------ Create Sale ------------------------ */
 export const createSale = asyncHandler(async (req: Request, res: Response) => {

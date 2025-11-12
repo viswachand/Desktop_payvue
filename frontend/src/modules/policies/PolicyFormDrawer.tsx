@@ -85,20 +85,23 @@ export default function PolicyFormDrawer({
           p: 3,
           top: theme.mixins.toolbar.minHeight,
           height: `calc(100% - ${theme.mixins.toolbar.minHeight}px)`,
+          display: "flex",
+          flexDirection: "column",
         },
       }}
     >
-      <Stack spacing={3}>
-        <Box>
-          <Typography variant="h6" fontWeight={600}>
-            {isEdit ? "Edit Policy" : "New Policy"}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {isEdit
-              ? "Update the selected policy"
-              : "Create a new store policy"}
-          </Typography>
-        </Box>
+      <Box display="flex" flexDirection="column" height="100%" gap={3}>
+        <Stack spacing={3} flexGrow={1}>
+          <Box>
+            <Typography variant="h6" fontWeight={600}>
+              {isEdit ? "Edit Policy" : "New Policy"}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {isEdit
+                ? "Update the selected policy"
+                : "Create a new store policy"}
+            </Typography>
+          </Box>
 
         {error && (
           <Alert severity="error" onClose={() => dispatch(clearPolicyError())}>
@@ -106,30 +109,41 @@ export default function PolicyFormDrawer({
           </Alert>
         )}
 
-        <TextField
-          label="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          fullWidth
-          required
-        />
-        <TextField
-          label="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          fullWidth
-          required
-          multiline
-          rows={4}
-          sx={{
-            "& .MuiInputBase-inputMultiline": {
-              padding: 0,
-              lineHeight: 1.5,
-            },
-          }}
-        />
-        <Stack direction="row" justifyContent="flex-end" gap={2} mt={2}>
-          <Button variant="outlined" onClick={onClose}>
+          <TextField
+            label="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            fullWidth
+            required
+          />
+          <Box sx={{ flexGrow: 1, display: "flex" }}>
+            <TextField
+              label="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              fullWidth
+              required
+              multiline
+              minRows={12}
+              maxRows={Infinity}
+              sx={{
+                flexGrow: 1,
+                "& .MuiOutlinedInput-root": {
+                  height: "100%",
+                  alignItems: "flex-start",
+                },
+                "& .MuiInputBase-inputMultiline": {
+                  lineHeight: 1.5,
+                  height: "100%",
+                  overflow: "auto",
+                  padding: theme.spacing(0.1),
+                },
+              }}
+            />
+          </Box>
+        </Stack>
+        <Stack direction="row" justifyContent="space-between" gap={2} mt="auto">
+          <Button variant="outlined" onClick={onClose} fullWidth>
             Cancel
           </Button>
           <Button
@@ -137,11 +151,12 @@ export default function PolicyFormDrawer({
             onClick={handleSubmit}
             disabled={isLoading || !title.trim() || !description.trim()}
             startIcon={isLoading ? <CircularProgress size={18} /> : undefined}
+            fullWidth
           >
             {isEdit ? "Save Changes" : "Create"}
           </Button>
         </Stack>
-      </Stack>
+      </Box>
     </Drawer>
   );
 }

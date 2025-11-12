@@ -9,7 +9,21 @@ import { toNumber } from "../utils/helperFunctions";
 import { sanitizeDocs } from "../utils/sanitizeDocs";
 import { Sale as SaleType } from "@payvue/shared/types/sale";
 
+const generateInvoiceNumber = async (): Promise<string> => {
+  let unique = false;
+  let invoiceNumber = "";
 
+  while (!unique) {
+    const timePart = Date.now().toString(36).slice(-4).toUpperCase();
+    const randomPart = Math.random().toString(36).substring(2, 4).toUpperCase();
+    invoiceNumber = `A1-${timePart}${randomPart}`;
+
+    const exists = await Sale.exists({ invoiceNumber });
+    if (!exists) unique = true;
+  }
+
+  return invoiceNumber;
+};
 
 /* ------------------------ Create Sale ------------------------ */
 export const createSale = asyncHandler(async (req: Request, res: Response) => {
@@ -55,7 +69,7 @@ export const createSale = asyncHandler(async (req: Request, res: Response) => {
   const effectivePaidAmount = Math.max(paidAmount, toNumber(advanceAmount));
   const balanceAmount = Math.max(0, total - effectivePaidAmount);
 
-  const invoiceNumber = `VCR-${Date.now()}`;
+  const invoiceNumber = await generateInvoiceNumber();
 
   const sale = Sale.build({
     invoiceNumber,
@@ -145,16 +159,6 @@ export const refundSale = asyncHandler(async (req: Request, res: Response) => {
   sale.isRefund = true;
   sale.status = "refunded";
   await sale.save();
-
-  // try {
-  //   await axios.post(`${N8N_WEBHOOK_URL}-refund`, {
-  //     saleId: sale._id,
-  //     invoiceNumber: sale.invoiceNumber,
-  //     refundedAt: sale.updatedAt,
-  //   });
-  // } catch (err) {
-  //   console.warn("[n8n] Refund webhook failed:", (err as Error).message);
-  // }
 
   res.status(200).json({
     success: true,

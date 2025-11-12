@@ -16,8 +16,11 @@ describe("AdminConfig API", () => {
             .send({
                 companyName: "PayVue Corp",
                 companyAddress: "123 Main St, NY",
+                companyCity: "New York",
+                companyPostalCode: "10001",
                 companyPhone: "1234567890",
                 companyEmail: "info@payvue.com",
+                companyWebsite: "https://payvue.com",
                 taxRate: 0.08,
             });
 
@@ -43,8 +46,11 @@ describe("AdminConfig API", () => {
             .send({
                 companyName: "PayVue Inc Updated",
                 companyAddress: "456 Broadway, NY",
+                companyCity: "New York",
+                companyPostalCode: "10002",
                 companyPhone: "9876543210",
                 companyEmail: "support@payvue.com",
+                companyWebsite: "https://support.payvue.com",
                 taxRate: 0.1,
             });
 

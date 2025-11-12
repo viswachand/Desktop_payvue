@@ -14,8 +14,11 @@ const adminSeed = {
 const adminConfigSeed = {
   companyName: "A - 1 JEWELERS",
   companyAddress: "5142 Wilson Mills Rd",
+  companyCity: "Richmond Heights",
+  companyPostalCode: "44143",
   companyPhone: "1234567890",
   companyEmail: "info@payvue.com",
+  companyWebsite: "https://amazingwholesalejewelry.com/",
   taxRate: 8,
 };
 

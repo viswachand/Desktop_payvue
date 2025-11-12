@@ -14,6 +14,7 @@ import InventoryFilters from "../components/InventoryFilters";
 import ItemStats from "../components/ItemStats";
 import InventoryTable from "../components/InventoryTable";
 import EmptyState from "../components/EmptyState";
+import type { Item } from "@payvue/shared/types/item";
 
 export default function InventoryListPage() {
   const theme = useTheme();
@@ -54,6 +55,48 @@ const filteredItems = useMemo(() => {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 }, [items, search, category, status]);
+
+  const csvColumns = useMemo(
+    () => [
+      {
+        header: "itemSKU",
+        accessor: (item: Item) => item.itemSKU ?? "",
+      },
+      {
+        header: "itemName",
+        accessor: (item: Item) => item.itemName ?? "",
+      },
+      {
+        header: "itemDescription",
+        accessor: (item: Item) => item.itemDescription ?? "",
+      },
+      {
+        header: "costPrice",
+        accessor: (item: Item) => item.costPrice ?? "",
+      },
+      {
+        header: "unitPrice",
+        accessor: (item: Item) => item.unitPrice ?? "",
+      },
+      {
+        header: "quantity",
+        accessor: (item: Item) => item.quantity ?? "",
+      },
+      {
+        header: "itemCategory",
+        accessor: (item: Item) =>
+          typeof item.itemCategory === "object" && item.itemCategory !== null
+            ? (item.itemCategory as any).name ?? ""
+            : item.itemCategory ?? "",
+      },
+    ],
+    []
+  );
+
+  const downloadFileName = useMemo(() => {
+    const safeStatus = (status || "all").toLowerCase();
+    return `inventory-${safeStatus || "all"}`;
+  }, [status]);
 
 
   return (
@@ -106,6 +149,9 @@ const filteredItems = useMemo(() => {
             setCategory={setCategory}
             status={status}
             setStatus={setStatus}
+            csvData={filteredItems}
+            csvColumns={csvColumns}
+            csvFileName={downloadFileName}
           />
         </Box>
 

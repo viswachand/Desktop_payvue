@@ -2,6 +2,9 @@ import React from "react";
 import { Box, Typography, Divider, useTheme } from "@/components/common";
 import { Stack } from "@mui/material";
 import { QRCodeCanvas } from "qrcode.react";
+import { useSelector } from "react-redux";
+import { selectAdminConfig } from "@/features/admin/adminSlice";
+import { formatPhoneNumber } from "@/utils/formatPhoneNumber";
 
 
 interface ReceiptLayoutProps {
@@ -19,7 +22,7 @@ interface ReceiptLayoutProps {
   footerSection?: React.ReactNode;
 }
 
-const STORE = {
+const FALLBACK_STORE = {
   name: "A-1 JEWELERS",
   address1: "5142 Wilson Mills Rd",
   city: "Ohio - 44143",
@@ -42,6 +45,26 @@ function ReceiptLayout({
   footerSection,
 }: ReceiptLayoutProps) {
   const theme = useTheme();
+  const adminConfig = useSelector(selectAdminConfig);
+
+  const store = React.useMemo(() => {
+    if (!adminConfig) return FALLBACK_STORE;
+
+    const cityLine = [adminConfig.companyCity, adminConfig.companyPostalCode]
+      .filter(Boolean)
+      .join(", ");
+
+    return {
+      name: adminConfig.companyName || FALLBACK_STORE.name,
+      address1: adminConfig.companyAddress || FALLBACK_STORE.address1,
+      city: cityLine || FALLBACK_STORE.city,
+      phone: adminConfig.companyPhone
+        ? formatPhoneNumber(adminConfig.companyPhone)
+        : FALLBACK_STORE.phone,
+      website: adminConfig.companyWebsite || FALLBACK_STORE.website,
+    };
+  }, [adminConfig]);
+
   return (
     <Box
       className="receipt-content"
@@ -57,15 +80,15 @@ function ReceiptLayout({
     >
       <Stack alignItems="center" spacing={0.3} sx={{ mb: 1.5 }}>
         <Typography variant="body1" fontWeight={700}>
-          {STORE.name}
+          {store.name}
         </Typography>
-        <Typography variant="caption">{STORE.address1}</Typography>
-        <Typography variant="caption">{STORE.city}</Typography>
-        <Typography variant="caption">{STORE.phone}</Typography>
+        <Typography variant="caption">{store.address1}</Typography>
+        <Typography variant="caption">{store.city}</Typography>
+        <Typography variant="caption">{store.phone}</Typography>
       </Stack>
 
       <Box display="flex" justifyContent="center" my={1}>
-        <QRCodeCanvas value={STORE.website} size={70} />
+        <QRCodeCanvas value={store.website} size={70} />
       </Box>
 
       <Divider sx={{ borderStyle: "dashed" }} />
@@ -104,17 +127,28 @@ function ReceiptLayout({
         <Box mb={0.5}>
           <Typography fontWeight={600} variant="caption">
             Comment:
-          </Typography>{" "}
-          {comment}
+          </Typography>
+          <Typography variant="caption">{comment}</Typography>
         </Box>
       )}
 
       {policyDescription && (
-        <Box mb={0.5}>
+        <Box mb={0.5} mt={1}>
           <Typography variant="caption" fontWeight={600}>
-           {policyDescription}
+            Policy:
           </Typography>
-          
+          <Typography
+            variant="caption"
+            sx={{
+              display: "block",
+              fontSize: "0.65rem",
+              lineHeight: 1.4,
+              textAlign: "justify",
+              color: theme.palette.text.secondary,
+            }}
+          >
+            {policyDescription}
+          </Typography>
         </Box>
       )}
 

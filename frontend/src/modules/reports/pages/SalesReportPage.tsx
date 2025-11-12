@@ -1,6 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Typography, Snackbar, useTheme } from "@/components/common";
+import {
+  Box,
+  Typography,
+  Snackbar,
+  useTheme,
+  CsvDownloadButton,
+} from "@/components/common";
 import { CircularProgress } from "@mui/material";
 import type { AppDispatch } from "@/app/store";
 import {
@@ -11,6 +17,16 @@ import {
 } from "@/features/reports/reportSlice";
 import ReportFilters from "../components/ReportFilters";
 import ReportTable from "../components/ReportTable";
+import type { Sale } from "@payvue/shared/types/sale";
+import type { CsvColumn } from "@/components/common/CsvDownloadButton";
+
+const buildDefaultFilters = () => ({
+  saleType: "all",
+  status: "all",
+  search: "",
+  fromDate: "",
+  toDate: "",
+});
 
 export default function SalesReportPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -18,14 +34,8 @@ export default function SalesReportPage() {
   const loading = useSelector(selectReportLoading);
   const theme = useTheme();
 
-  const [filters, setFilters] = useState({
-    saleType: "all",
-    status: "all",
-    search: "",
-    fromDate: "",
-    toDate: "",
-  });
-  const [appliedFilters, setAppliedFilters] = useState(filters);
+  const [filters, setFilters] = useState(() => buildDefaultFilters());
+  const [appliedFilters, setAppliedFilters] = useState(() => buildDefaultFilters());
 
   const [snack, setSnack] = useState({
     open: false,
@@ -39,6 +49,12 @@ export default function SalesReportPage() {
 
   const handleApplyFilters = () => {
     setAppliedFilters(filters);
+  };
+
+  const handleResetFilters = () => {
+    const defaults = buildDefaultFilters();
+    setFilters(defaults);
+    setAppliedFilters(defaults);
   };
 
   const handleDelete = async (id: string) => {
@@ -58,7 +74,7 @@ export default function SalesReportPage() {
     }
   };
 
-  const filteredRows = React.useMemo(() => {
+  const filteredRows = useMemo(() => {
     const normalize = (value: string) => value.trim().toLowerCase();
     const searchTerm = normalize(appliedFilters.search);
     return reports.filter((sale) => {
@@ -83,6 +99,72 @@ export default function SalesReportPage() {
     });
   }, [reports, appliedFilters]);
 
+  const formatInstallments = (sale: Sale) => {
+    if (!sale.installments?.length) return "";
+    return sale.installments
+      .map((inst, index) => {
+        const amount = inst.amount ?? 0;
+        const method = inst.method ?? "method";
+        const paidDate = inst.paidAt
+          ? new Date(inst.paidAt).toLocaleDateString("en-US")
+          : "";
+        return `${index + 1}. ${method}:${amount}${
+          paidDate ? `(${paidDate})` : ""
+        }`;
+      })
+      .join(" | ");
+  };
+
+  const csvColumns = useMemo<CsvColumn<Sale>[]>(() => {
+    return [
+      { header: "invoiceNumber", accessor: (sale) => sale.invoiceNumber ?? "" },
+      {
+        header: "date",
+        accessor: (sale) =>
+          sale.createdAt
+            ? new Date(sale.createdAt).toLocaleDateString("en-US")
+            : "",
+      },
+      {
+        header: "customer",
+        accessor: (sale) =>
+          `${sale.customerInformation?.firstName ?? ""} ${
+            sale.customerInformation?.lastName ?? ""
+          }`.trim(),
+      },
+      {
+        header: "phone",
+        accessor: (sale) => sale.customerInformation?.phone ?? "",
+      },
+      {
+        header: "subtotal",
+        accessor: (sale) => sale.subtotal ?? 0,
+      },
+      {
+        header: "discountTotal",
+        accessor: (sale) => sale.discountTotal ?? 0,
+      },
+      {
+        header: "paidAmount",
+        accessor: (sale) => sale.paidAmount ?? 0,
+      },
+      {
+        header: "status",
+        accessor: (sale) => sale.status ?? "",
+      },
+      {
+        header: "installments",
+        accessor: (sale) => formatInstallments(sale),
+      },
+    ];
+  }, []);
+
+  const downloadFileName = useMemo(() => {
+    const from = appliedFilters.fromDate || "all";
+    const to = appliedFilters.toDate || "all";
+    return `reports-${from}-${to}`;
+  }, [appliedFilters.fromDate, appliedFilters.toDate]);
+
   if (loading)
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
@@ -100,6 +182,16 @@ export default function SalesReportPage() {
         filters={filters}
         onChange={setFilters}
         onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+        extraActions={
+          <CsvDownloadButton
+            data={filteredRows as Sale[]}
+            columns={csvColumns}
+            fileName={downloadFileName}
+            label="Download CSV"
+            disabled={!filteredRows.length}
+          />
+        }
       />
 
       <ReportTable rows={filteredRows} onDelete={handleDelete} />

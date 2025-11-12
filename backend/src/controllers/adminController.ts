@@ -14,16 +14,24 @@ export const createOrUpdateAdminConfig = asyncHandler(async (req: Request, res: 
     await validateRequest(req, [
       body("companyName").notEmpty().withMessage("Company name is required"),
       body("companyAddress").notEmpty().withMessage("Company address is required"),
+      body("companyCity").notEmpty().withMessage("Company city is required"),
+      body("companyPostalCode").notEmpty().withMessage("Company postal code is required"),
       body("companyPhone").notEmpty().withMessage("Company phone is required"),
       body("companyEmail").isEmail().withMessage("Valid company email is required"),
+      body("companyWebsite")
+        .isURL({ require_protocol: true })
+        .withMessage("Valid company website is required"),
       body("taxRate").isFloat({ min: 0 }).withMessage("Tax rate must be a non-negative number"),
     ]);
 
     const {
       companyName,
       companyAddress,
+      companyCity,
+      companyPostalCode,
       companyPhone,
       companyEmail,
+      companyWebsite,
       companyFax,
       taxRate,
     } = req.body;
@@ -34,8 +42,11 @@ export const createOrUpdateAdminConfig = asyncHandler(async (req: Request, res: 
       // 🛠️ Update existing config
       config.companyName = companyName;
       config.companyAddress = companyAddress;
+      config.companyCity = companyCity;
+      config.companyPostalCode = companyPostalCode;
       config.companyPhone = companyPhone;
       config.companyEmail = companyEmail;
+      config.companyWebsite = companyWebsite;
       config.companyFax = companyFax;
       config.taxRate = taxRate;
 
@@ -48,8 +59,11 @@ export const createOrUpdateAdminConfig = asyncHandler(async (req: Request, res: 
     const newConfig = AdminConfig.build({
       companyName,
       companyAddress,
+      companyCity,
+      companyPostalCode,
       companyPhone,
       companyEmail,
+      companyWebsite,
       companyFax,
       taxRate,
     });

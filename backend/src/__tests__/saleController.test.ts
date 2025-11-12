@@ -16,8 +16,11 @@ describe("💰 Sale API", () => {
             .send({
                 companyName: "PayVue Test Corp",
                 companyAddress: "123 Main St",
+                companyCity: "New York",
+                companyPostalCode: "10001",
                 companyPhone: "1234567890",
                 companyEmail: "info@payvue.com",
+                companyWebsite: "https://test.payvue.com",
                 taxRate: 0.08,
             });
 

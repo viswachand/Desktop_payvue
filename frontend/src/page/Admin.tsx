@@ -56,15 +56,25 @@ export default function AdminConfigPage() {
     initialValues: {
       companyName: config?.companyName ?? "",
       companyAddress: config?.companyAddress ?? "",
+      companyCity: config?.companyCity ?? "",
+      companyPostalCode: config?.companyPostalCode ?? "",
       companyPhone: config?.companyPhone
         ? formatPhoneNumber(config.companyPhone)
         : "",
       companyEmail: config?.companyEmail ?? "",
+      companyWebsite: config?.companyWebsite ?? "",
       companyFax: config?.companyFax ?? "",
       taxRate: config?.taxRate?.toString() ?? "",
     },
     validationSchema: Yup.object({
+      companyName: Yup.string().required("Company name is required"),
+      companyAddress: Yup.string().required("Company address is required"),
+      companyCity: Yup.string().required("City is required"),
+      companyPostalCode: Yup.string().required("Postal code is required"),
       companyEmail: Yup.string().email("Enter a valid email").nullable(),
+      companyWebsite: Yup.string()
+        .url("Enter a valid URL (include https://)")
+        .required("Website is required"),
       taxRate: Yup.number()
         .typeError("Must be a number")
         .min(0, "Cannot be negative")
@@ -211,6 +221,45 @@ export default function AdminConfigPage() {
               <Grid spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
+                    id="companyCity"
+                    name="companyCity"
+                    label="City"
+                    value={formik.values.companyCity}
+                    onChange={formik.handleChange}
+                    fullWidth
+                    autoComplete="address-level2"
+                    error={
+                      !!formik.errors.companyCity && !!formik.touched.companyCity
+                    }
+                    helperText={
+                      formik.touched.companyCity && formik.errors.companyCity
+                    }
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    id="companyPostalCode"
+                    name="companyPostalCode"
+                    label="Postal Code"
+                    value={formik.values.companyPostalCode}
+                    onChange={formik.handleChange}
+                    fullWidth
+                    autoComplete="postal-code"
+                    error={
+                      !!formik.errors.companyPostalCode &&
+                      !!formik.touched.companyPostalCode
+                    }
+                    helperText={
+                      formik.touched.companyPostalCode &&
+                      formik.errors.companyPostalCode
+                    }
+                  />
+                </Grid>
+              </Grid>
+
+              <Grid spacing={2}>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
                     id="companyPhone"
                     name="companyPhone"
                     label="Phone"
@@ -254,6 +303,28 @@ export default function AdminConfigPage() {
                     autoComplete="off"
                   />
                 </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    id="companyWebsite"
+                    name="companyWebsite"
+                    label="Website URL"
+                    value={formik.values.companyWebsite}
+                    onChange={formik.handleChange}
+                    fullWidth
+                    autoComplete="url"
+                    error={
+                      !!formik.errors.companyWebsite &&
+                      !!formik.touched.companyWebsite
+                    }
+                    helperText={
+                      formik.touched.companyWebsite &&
+                      formik.errors.companyWebsite
+                    }
+                  />
+                </Grid>
+              </Grid>
+
+              <Grid spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     id="taxRate"

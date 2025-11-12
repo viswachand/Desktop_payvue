@@ -14,6 +14,8 @@ const adminConfigSchema = new mongoose.Schema<AdminConfigDoc>(
     {
         companyName: { type: String, required: true, trim: true },
         companyAddress: { type: String, required: true, trim: true },
+        companyCity: { type: String, required: true, trim: true },
+        companyPostalCode: { type: String, required: true, trim: true },
         companyPhone: { type: String, required: true, trim: true },
         companyEmail: {
             type: String,
@@ -25,6 +27,7 @@ const adminConfigSchema = new mongoose.Schema<AdminConfigDoc>(
                 message: (props: any) => `${props.value} is not a valid email!`,
             },
         },
+        companyWebsite: { type: String, required: true, trim: true },
         companyFax: { type: String, trim: true },
         taxRate: { type: Number, required: true, min: 0 },
     },

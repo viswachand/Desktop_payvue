@@ -1,7 +1,7 @@
 import { Box, Button, TextField, Select, useTheme } from "@/components/common";
 import { InputAdornment } from "@mui/material";
 import { Search } from "@mui/icons-material";
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 
 interface ReportFiltersProps {
   filters: {
@@ -13,12 +13,16 @@ interface ReportFiltersProps {
   };
   onChange: (filters: ReportFiltersProps["filters"]) => void;
   onApply: () => void;
+  onReset?: () => void;
+  extraActions?: ReactNode;
 }
 
 export default function ReportFilters({
   filters,
   onChange,
   onApply,
+  onReset,
+  extraActions,
 }: ReportFiltersProps) {
   const theme = useTheme();
   const [dateError, setDateError] = useState<string | null>(null);
@@ -37,6 +41,13 @@ export default function ReportFilters({
     onChange(updated);
   };
 
+  const handleReset = () => {
+    setDateError(null);
+    if (onReset) {
+      onReset();
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -44,104 +55,111 @@ export default function ReportFilters({
         backgroundColor: theme.palette.background.paper,
         borderTopLeftRadius: theme.shape.borderRadius,
         borderTopRightRadius: theme.shape.borderRadius,
-          borderTop: `1px solid ${theme.palette.divider}`,
-          borderLeft: `1px solid ${theme.palette.divider}`,
-          borderRight: `1px solid ${theme.palette.divider}`,
+        borderTop: `1px solid ${theme.palette.divider}`,
+        borderLeft: `1px solid ${theme.palette.divider}`,
+        borderRight: `1px solid ${theme.palette.divider}`,
         display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "space-between",
         flexWrap: "wrap",
-        gap: 2,
+        gap: 1.5,
+        alignItems: "flex-end",
       }}
     >
-      {/* Left: Search field */}
-      <Box sx={{ flex: 1, minWidth: 50 }}>
-        <TextField
-          name="search"
-          placeholder="Search..."
-          size="small"
-          fullWidth
-          sx={{ width: 200 }}
-          value={filters.search}
-          onChange={(e) => handleChange("search", e.target.value)}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search sx={{ color: theme.palette.grey[400] }} />
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
-      </Box>
+      <TextField
+        name="search"
+        placeholder="Search customer or invoice..."
+        size="small"
+        sx={{ flex: "1 1 240px", minWidth: 200 }}
+        value={filters.search}
+        onChange={(e) => handleChange("search", e.target.value)}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search sx={{ color: theme.palette.grey[400] }} />
+              </InputAdornment>
+            ),
+          },
+        }}
+      />
 
-      {/* Right: All filters grouped together */}
+      <TextField
+        name="fromDate"
+        placeholder="From Date"
+        type="date"
+        size="small"
+        value={filters.fromDate}
+        onChange={(e) => handleChange("fromDate", e.target.value)}
+        slotProps={{
+          inputLabel: { shrink: false },
+        }}
+        sx={{ width: 180 }}
+        error={Boolean(dateError)}
+        helperText={dateError ? "Invalid date range" : ""}
+      />
+
+      <TextField
+        name="toDate"
+        placeholder="To Date"
+        type="date"
+        size="small"
+        sx={{ width: 180 }}
+        value={filters.toDate}
+        onChange={(e) => handleChange("toDate", e.target.value)}
+        slotProps={{
+          inputLabel: { shrink: false },
+        }}
+        error={Boolean(dateError)}
+        helperText={dateError ? "Invalid date range" : ""}
+      />
+
+      <Select
+        value={filters.saleType || "all"}
+        onChange={(e) => handleChange("saleType", e.target.value)}
+        options={[
+          { value: "all", label: "All Types" },
+          { value: "inventory", label: "Inventory" },
+          { value: "service", label: "Service" },
+          { value: "custom", label: "Custom" },
+        ]}
+        placeholder="All Types"
+        minWidth={160}
+      />
+
+      <Select
+        value={filters.status || "all"}
+        onChange={(e) => handleChange("status", e.target.value)}
+        options={[
+          { value: "all", label: "All Status" },
+          { value: "paid", label: "Paid" },
+          { value: "installment", label: "Installments" },
+          { value: "refunded", label: "Refunded" },
+        ]}
+        placeholder="All Status"
+        minWidth={160}
+      />
+
       <Box
         sx={{
           display: "flex",
-          alignItems: "flex-end",
-          gap: 2,
+          alignItems: "center",
+          gap: 1,
           flexWrap: "wrap",
-          justifyContent: "flex-end",
+          ml: "auto",
         }}
       >
-        <TextField
-          name="fromDate"
-          placeholder="From Date"
-          type="date"
-          size="small"
-          value={filters.fromDate}
-          onChange={(e) => handleChange("fromDate", e.target.value)}
-          slotProps={{
-            inputLabel: { shrink: false },
+        <Button
+          variant="outlined"
+          color="secondary"
+          onClick={handleReset}
+          sx={{
+            fontWeight: 600,
+            borderRadius: 1,
+            textTransform: "none",
+            height: 40,
           }}
-          sx={{ width: 200 }}
-          error={Boolean(dateError)}
-          helperText={dateError ? "Invalid date range" : ""}
-        />
-
-        <TextField
-          name="toDate"
-          placeholder="To Date"
-          type="date"
-          size="small"
-          sx={{ width: 200 }}
-          value={filters.toDate}
-          onChange={(e) => handleChange("toDate", e.target.value)}
-          slotProps={{
-            inputLabel: { shrink: false },
-          }}
-          error={Boolean(dateError)}
-          helperText={dateError ? "Invalid date range" : ""}
-        />
-
-        <Select
-          value={filters.saleType || "all"}
-          onChange={(e) => handleChange("saleType", e.target.value)}
-          options={[
-            { value: "all", label: "All Types" },
-            { value: "inventory", label: "Inventory" },
-            { value: "service", label: "Service" },
-            { value: "custom", label: "Custom" },
-          ]}
-          placeholder="All Types"
-          minWidth={150}
-        />
-
-        <Select
-          value={filters.status || "all"}
-          onChange={(e) => handleChange("status", e.target.value)}
-          options={[
-            { value: "all", label: "All Status" },
-            { value: "paid", label: "Paid" },
-            { value: "pending", label: "Pending" },
-            { value: "refunded", label: "Refunded" },
-          ]}
-          placeholder="All Status"
-          minWidth={150}
-        />
-
+        >
+          Reset
+        </Button>
         <Button
           variant="contained"
           type="submit"
@@ -156,6 +174,7 @@ export default function ReportFilters({
         >
           Apply
         </Button>
+        {extraActions}
       </Box>
     </Box>
   );

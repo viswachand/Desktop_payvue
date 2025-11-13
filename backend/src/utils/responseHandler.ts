@@ -34,12 +34,25 @@ export const errorResponse = (
   message: string = "An error occurred",
   statusCode: number = 500
 ) => {
-  console.error(`[Error] ${message}:`, error.message || error);
+  const derivedStatus =
+    typeof error?.statusCode === "number"
+      ? error.statusCode
+      : typeof error?.status === "number"
+      ? error.status
+      : statusCode;
+  const isClientError = derivedStatus >= 400 && derivedStatus < 500;
+  const responseMessage =
+    isClientError && error?.message ? error.message : message;
 
-  return res.status(statusCode).json({
+  console.error(
+    `[Error] ${responseMessage}:`,
+    error?.message || error || "Unknown error"
+  );
+
+  return res.status(derivedStatus).json({
     success: false,
-    message,
-    error: error.message || error,
+    message: responseMessage,
+    error: isClientError ? undefined : error?.message || error,
   });
 };
 

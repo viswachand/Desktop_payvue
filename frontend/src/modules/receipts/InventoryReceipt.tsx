@@ -79,6 +79,7 @@ function InventoryReceipt({ data }: { data: Sale }) {
           <LayawaySection installments={installments} />
         ) : null
       }
+      signature={data.signature}
     >
       <Box sx={{ borderBottom: "1px dashed #999", pb: 0.5, mb: 0.5 }}>
         <Grid container spacing={0.5}>

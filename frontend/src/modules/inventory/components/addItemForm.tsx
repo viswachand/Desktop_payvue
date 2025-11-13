@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { Box, CircularProgress, MenuItem } from "@mui/material";
 import {
   Grid,
@@ -29,6 +29,7 @@ import {
 } from "@/features/category/category";
 import type { Item } from "@payvue/shared/types/item";
 import AddCategoryDialog from "./AddCategoryDialog";
+import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 
 export default function ItemFormPage() {
   const theme = useTheme();
@@ -114,6 +115,24 @@ export default function ItemFormPage() {
       const payload = { ...values };
       if (isEditMode && id) await dispatch(updateItem({ id, updates: payload }));
       else await dispatch(createItem(payload));
+    },
+  });
+
+  const handleSkuScan = useCallback(
+    (value: string) => {
+      formik.setFieldValue("itemSKU", value);
+    },
+    [formik]
+  );
+
+  useBarcodeScanner({
+    onScan: handleSkuScan,
+    shouldCapture: (event) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return true;
+      const tag = target.tagName?.toLowerCase();
+      const isEditable = target.getAttribute("contenteditable") === "true";
+      return !isEditable && tag !== "input" && tag !== "textarea";
     },
   });
 

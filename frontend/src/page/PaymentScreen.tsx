@@ -33,7 +33,11 @@ import { selectAdminConfig } from "@/features/admin/adminSlice";
 import { createSale } from "@/features/sales/saleSlice";
 import { calculateSaleTotals } from "@/utils/saleHelpers";
 import type { AppDispatch } from "@/app/store";
-import type { PaymentMethod, SaleItemType } from "@payvue/shared/types/sale";
+import type {
+  PaymentMethod,
+  SaleItemType,
+  SaleSignature,
+} from "@payvue/shared/types/sale";
 
 export default function PaymentPage() {
   const theme = useTheme();
@@ -54,6 +58,7 @@ export default function PaymentPage() {
   >([]);
   const [isLayaway, setIsLayaway] = useState(false);
   const [policy, setPolicy] = useState({ title: "", description: "" });
+  const [signature, setSignature] = useState<SaleSignature | null>(null);
 
   // Snackbar
   const [snackOpen, setSnackOpen] = useState(false);
@@ -91,6 +96,8 @@ export default function PaymentPage() {
       return showSnack("Full payment is required before confirming.", "error");
     if (!installments.length)
       return showSnack("Add at least one payment method.", "error");
+    if (!signature?.imageData)
+      return showSnack("Capture the customer's signature before continuing.", "error");
 
     const saleType = cart.some((i) => i.itemType === "custom")
       ? "custom"
@@ -130,6 +137,7 @@ export default function PaymentPage() {
       isLayaway,
       isRefund: false,
       comment,
+      signature: signature ?? undefined,
     };
 
     try {
@@ -139,6 +147,7 @@ export default function PaymentPage() {
         dispatch(clearCart());
         dispatch(clearCustomer());
         dispatch(clearPayment());
+        setSignature(null);
         navigate("/success");
       } else {
         showSnack("Failed to create sale. Please try again.", "error");
@@ -181,6 +190,8 @@ export default function PaymentPage() {
               onSelectLayaway={setIsLayaway}
               onSelectPolicy={setPolicy}
               remainingAmount={remaining}
+              signature={signature}
+              onSignatureChange={setSignature}
             />
 
             <Box sx={{ mt: 3 }}>
@@ -225,7 +236,7 @@ export default function PaymentPage() {
         message={snackMessage}
         severity={snackSeverity}
         autoHideDuration={4000}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       />
     </>
   );

@@ -71,6 +71,15 @@ export interface SaleCustomerInfo {
 /* -------------------------- Main Sale ----------------------------- */
 /* ------------------------------------------------------------------ */
 
+export interface SaleSignature {
+  imageData: string;         // data URL (image/png;base64,...)
+  format: string;            // mime type, e.g. image/png
+  padType?: string;          // e.g. "topaz-sigweb", "manual"
+  capturedAt: string | Date; // ISO timestamp of capture
+  rawData?: string;          // optional SigPlus string for audit
+  meta?: Record<string, any>;
+}
+
 export interface Sale {
   id?: string;
   customerId?: string;
@@ -106,6 +115,9 @@ export interface Sale {
   isRefund?: boolean;
   refundedSaleId?: string;
 
+  /* Signature */
+  signature?: SaleSignature;
+
   /* 🧩 Custom Order Specific */
   isCustomOrder?: boolean; // true when sale contains at least one custom item
   deliveryDate?: Date;     // overall delivery date for the order
@@ -137,4 +149,7 @@ export interface SalePayload {
   /* Policy details */
   policyTitle: string;
   policyDescription: string;
+
+  /* Customer signature */
+  signature?: SaleSignature;
 }

@@ -29,6 +29,7 @@ const Login: React.FC = () => {
   const error = useSelector(selectAuthError);
 
   const [openSnack, setOpenSnack] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const formik = useFormik({
     initialValues: {
@@ -41,11 +42,19 @@ const Login: React.FC = () => {
     }),
     onSubmit: async (values) => {
       try {
+        setFormError(null);
         const result = await dispatch(loginUser(values)).unwrap();
         if (result?.token) {
           navigate("/dashboard");
         }
-      } catch {
+      } catch (err: unknown) {
+        const friendlyMessage =
+          typeof err === "string"
+            ? err
+            : err instanceof Error
+            ? err.message
+            : "Unable to login. Please check your credentials.";
+        setFormError(friendlyMessage);
         setOpenSnack(true);
       }
     },
@@ -54,6 +63,7 @@ const Login: React.FC = () => {
   const handleClose = () => {
     setOpenSnack(false);
     dispatch(clearAuthError());
+    setFormError(null);
   };
 
   return (
@@ -106,6 +116,17 @@ const Login: React.FC = () => {
           >
             {isLoading ? "Logging in..." : "Login"}
           </Button>
+
+          {formError && (
+            <Typography
+              variant="body2"
+              color="error"
+              textAlign="center"
+              mt={2}
+            >
+              {formError}
+            </Typography>
+          )}
         </form>
       </Box>
 
@@ -120,8 +141,8 @@ const Login: React.FC = () => {
       </Typography>
 
       <Snackbar
-        open={openSnack && !!error}
-        message={error || ""}
+        open={openSnack && (!!formError || !!error)}
+        message={formError || error || ""}
         severity="error"
         onClose={handleClose}
       />

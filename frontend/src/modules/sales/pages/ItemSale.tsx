@@ -16,6 +16,7 @@ import {
 } from "@/features/cart/cartSlice";
 import SaleLayout from "../layout/SaleLayout";
 import type { Item } from "@payvue/shared/types/item";
+import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 
 type SnackSeverity = "success" | "error" | "info" | "warning";
 
@@ -135,6 +136,36 @@ export default function ItemSale() {
     },
     [handleSearchSubmit]
   );
+
+  const handleBarcodeScan = useCallback(
+    (value: string) => {
+      const normalized = value.trim().toLowerCase();
+      if (!normalized) return;
+      const exactMatch = availableItems.find((item) => item.itemSKU?.toLowerCase() === normalized);
+      if (exactMatch) {
+        handleAddToCart(exactMatch);
+        setSearch("");
+        setPage(1);
+      } else {
+        setSearch(value);
+        setSnackMessage("No item matches scanned barcode");
+        setSnackSeverity("warning");
+        setSnackOpen(true);
+      }
+    },
+    [availableItems, handleAddToCart, setPage, setSearch, setSnackMessage, setSnackOpen, setSnackSeverity]
+  );
+
+  useBarcodeScanner({
+    onScan: handleBarcodeScan,
+    shouldCapture: (event) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return true;
+      const tag = target.tagName?.toLowerCase();
+      const isEditable = target.getAttribute("contenteditable") === "true";
+      return !isEditable && tag !== "input" && tag !== "textarea";
+    },
+  });
 
   return (
     <SaleLayout>

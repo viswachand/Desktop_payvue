@@ -7,17 +7,23 @@ import {
   useTheme,
 } from "@/components/common";
 import PolicySelect from "@/components/common/PolicySelect";
+import SignatureCapture from "./SignatureCapture";
+import type { SaleSignature } from "@payvue/shared/types/sale";
 
 interface PaymentFooterProps {
   onSelectLayaway: (isLayaway: boolean) => void;
   onSelectPolicy: (policy: { title: string; description: string }) => void;
   remainingAmount?: number;
+  signature: SaleSignature | null;
+  onSignatureChange: (signature: SaleSignature | null) => void;
 }
 
 export default function PaymentFooter({
   onSelectLayaway,
   onSelectPolicy,
   remainingAmount = 0,
+  signature,
+  onSignatureChange,
 }: PaymentFooterProps) {
   const theme = useTheme();
   const [selectedPolicy, setSelectedPolicy] = useState<string>("");
@@ -39,8 +45,19 @@ export default function PaymentFooter({
 
   return (
     <Box sx={{ mt: 3 }}>
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: "100%",
+          mx: "auto",
+          overflow: "hidden",
+        }}
+      >
+        <SignatureCapture value={signature} onChange={onSignatureChange} />
+      </Box>
+
       <Grid container alignItems="center" spacing={2}>
-        {/*  Sale Policy */}
+      
         <Grid size={{ xs: 7 }}>
           <PolicySelect
             value={selectedPolicy}
@@ -48,8 +65,6 @@ export default function PaymentFooter({
             label="Sale Policy"
           />
         </Grid>
-
-        {/* 💼 Layaway Button */}
         <Grid size={{ xs: 5 }}>
           <Box
             sx={{
@@ -79,7 +94,6 @@ export default function PaymentFooter({
         </Grid>
       </Grid>
 
-      {/* Optional hint when disabled */}
       {isFullyPaid && (
         <Typography
           variant="caption"

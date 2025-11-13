@@ -5,6 +5,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import { useSelector } from "react-redux";
 import { selectAdminConfig } from "@/features/admin/adminSlice";
 import { formatPhoneNumber } from "@/utils/formatPhoneNumber";
+import type { SaleSignature } from "@payvue/shared/types/sale";
 
 
 interface ReceiptLayoutProps {
@@ -20,6 +21,7 @@ interface ReceiptLayoutProps {
   children: React.ReactNode;
   summarySection: React.ReactNode;
   footerSection?: React.ReactNode;
+  signature?: SaleSignature | null;
 }
 
 const FALLBACK_STORE = {
@@ -43,6 +45,7 @@ function ReceiptLayout({
   children,
   summarySection,
   footerSection,
+  signature,
 }: ReceiptLayoutProps) {
   const theme = useTheme();
   const adminConfig = useSelector(selectAdminConfig);
@@ -64,6 +67,21 @@ function ReceiptLayout({
       website: adminConfig.companyWebsite || FALLBACK_STORE.website,
     };
   }, [adminConfig]);
+
+  const normalizeSignatureSrc = React.useCallback(
+    (sig?: SaleSignature | null) => {
+      if (!sig?.imageData) return "";
+      return sig.imageData.startsWith("data:")
+        ? sig.imageData
+        : `data:${sig.format || "image/png"};base64,${sig.imageData}`;
+    },
+    []
+  );
+
+  const signatureSrc = React.useMemo(
+    () => normalizeSignatureSrc(signature),
+    [normalizeSignatureSrc, signature]
+  );
 
   return (
     <Box
@@ -149,6 +167,38 @@ function ReceiptLayout({
           >
             {policyDescription}
           </Typography>
+        </Box>
+      )}
+
+      {signatureSrc && (
+        <Box
+          mt={1.5}
+          sx={{
+            border: `1px dashed ${theme.palette.divider}`,
+            borderRadius: 1,
+            p: 1,
+            backgroundColor:
+              theme.palette.mode === "light"
+                ? "rgba(0,0,0,0.02)"
+                : "rgba(255,255,255,0.03)",
+          }}
+        >
+          <Typography variant="caption" fontWeight={600} gutterBottom>
+            Customer Signature
+          </Typography>
+          <Box
+            component="img"
+            src={signatureSrc}
+            alt="Customer signature"
+            sx={{
+              width: "100%",
+              maxWidth: 240,
+              display: "block",
+              borderRadius: 0.5,
+              border: `1px solid ${theme.palette.divider}`,
+              backgroundColor: "#fff",
+            }}
+          />
         </Box>
       )}
 

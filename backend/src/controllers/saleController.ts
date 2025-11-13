@@ -41,6 +41,7 @@ export const createSale = asyncHandler(async (req: Request, res: Response) => {
     refundedSaleId,
     advanceAmount = 0,
     deliveryDate,
+    signature,
   } = req.body as SaleType;
 
   if (!items?.length)
@@ -49,6 +50,8 @@ export const createSale = asyncHandler(async (req: Request, res: Response) => {
     throw new BadRequestError("Customer information is incomplete.");
   if (!policyTitle || !policyDescription)
     throw new BadRequestError("Sale policy details are required.");
+  if (!signature?.imageData)
+    throw new BadRequestError("Customer signature is required.");
 
   const saleItems = await buildSaleItems(items);
   if (!saleItems.length)
@@ -70,6 +73,15 @@ export const createSale = asyncHandler(async (req: Request, res: Response) => {
   const balanceAmount = Math.max(0, total - effectivePaidAmount);
 
   const invoiceNumber = await generateInvoiceNumber();
+
+  const normalizedSignature = signature
+    ? {
+        ...signature,
+        capturedAt: signature.capturedAt
+          ? new Date(signature.capturedAt)
+          : new Date(),
+      }
+    : undefined;
 
   const sale = Sale.build({
     invoiceNumber,
@@ -101,6 +113,7 @@ export const createSale = asyncHandler(async (req: Request, res: Response) => {
     refundedSaleId,
     isCustomOrder,
     deliveryDate,
+    signature: normalizedSignature,
   });
 
   const savedSale = await sale.save();

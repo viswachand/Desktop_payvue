@@ -4,6 +4,7 @@ import {
     SaleItem,
     Installment,
     SaleCustomerInfo,
+    SaleSignature,
 } from "@payvue/shared/types/sale";
 import { globalToJSONTransform } from "../utils/transform";
 
@@ -69,6 +70,19 @@ const customerInfoSchema = new mongoose.Schema<SaleCustomerInfo>(
     { _id: false }
 );
 
+/* --------------------------- Signature Schema ---------------------------- */
+const signatureSchema = new mongoose.Schema<SaleSignature>(
+    {
+        imageData: { type: String, required: true },
+        format: { type: String, default: "image/png" },
+        padType: { type: String },
+        capturedAt: { type: Date, default: Date.now },
+        rawData: { type: String },
+        meta: { type: mongoose.Schema.Types.Mixed },
+    },
+    { _id: false }
+);
+
 /* ----------------------------- Sale Schema ------------------------------- */
 const saleSchema = new mongoose.Schema<SaleDoc>(
     {
@@ -97,7 +111,9 @@ const saleSchema = new mongoose.Schema<SaleDoc>(
 
         policyTitle: { type: String, required: true },
         policyDescription: { type: String, required: true },
-        comment:{type:String},
+        comment: { type: String },
+
+        signature: { type: signatureSchema, required: true },
 
         isLayaway: { type: Boolean, default: false },
         isHistoricalLayaway: { type: Boolean, default: false },

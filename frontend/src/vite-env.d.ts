@@ -2,7 +2,7 @@
 
 interface ImportMetaEnv {
     readonly VITE_API_URL: string;
-    // Add more VITE_ vars as you create them
+    readonly VITE_SIGWEB_REMOTE_URL?: string;
 }
 
 interface ImportMeta {
